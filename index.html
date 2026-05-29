@@ -127,7 +127,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 .nar-icon svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .nar-label{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
 .nar-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:10px;font-size:10px;font-family:'DM Mono',monospace}
-.nar-body{font-size:13px;line-height:1.9;color:var(--text);white-space:pre-wrap}
+.nar-body{font-size:13px;line-height:1.9;color:var(--text)}
 .section-head{display:flex;align-items:center;gap:8px;margin-bottom:12px}
 .section-title{font-family:'Syne',sans-serif;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text2)}
 .section-line{flex:1;height:1px;background:var(--border)}
@@ -730,7 +730,18 @@ function renderNar(txt, provider) {
   const card=document.getElementById('narCard');
   if(!txt){card.style.display='none';return;}
   card.style.display='block';
-  document.getElementById('narText').textContent=txt;
+ // Strip any raw JSON that leaked into the narrative
+let clean = txt.replace(/",\s*"metrics":\s*\[[\s\S]*$/, '').trim();
+clean = txt.replace(/\{\"label[\s\S]*$/, '').trim();
+
+// Render markdown headings and bold
+clean = clean
+  .replace(/^## (.+)$/gm, '<div style="font-family:\'Syne\',sans-serif;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);margin:16px 0 6px">$1</div>')
+  .replace(/^### (.+)$/gm, '<div style="font-family:\'Syne\',sans-serif;font-size:12px;font-weight:700;color:var(--text);margin:12px 0 4px">$1</div>')
+  .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+  .replace(/\n/g, '<br>');
+
+document.getElementById('narText').innerHTML = clean;
   const p=PROVIDERS[provider]||PROVIDERS['local'];
   card.style.borderLeftColor=p.color;
   card.style.background=p.bg.replace('0.12)','0.04)');
