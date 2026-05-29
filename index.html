@@ -730,9 +730,14 @@ function renderNar(txt, provider) {
   const card=document.getElementById('narCard');
   if(!txt){card.style.display='none';return;}
   card.style.display='block';
- // Strip any raw JSON that leaked into the narrative
-let clean = txt.replace(/",\s*"metrics":\s*\[[\s\S]*$/, '').trim();
-clean = txt.replace(/\{\"label[\s\S]*$/, '').trim();
+// Strip any raw JSON wrapper leaking into narrative
+let clean = txt
+  .replace(/^\s*\{"narrative"\s*:\s*"/, '')
+  .replace(/",\s*"metrics"\s*:\s*\[[\s\S]*$/, '')
+  .replace(/\{"label[\s\S]*$/, '')
+  .replace(/\\n/g, '\n')
+  .replace(/\\"/g, '"')
+  .trim();
 
 // Render markdown headings and bold
 clean = clean
