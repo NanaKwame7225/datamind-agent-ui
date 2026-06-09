@@ -553,13 +553,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
       <textarea class="query-input" id="queryInput" rows="3" placeholder="What do you want to know about your data?"></textarea>
       <div class="quick-prompts" id="qprompts"></div>
     </div>
-    <div style="padding:0 8px 10px">
-      <div style="font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--text3);font-family:'JetBrains Mono',monospace;font-weight:700;margin-bottom:5px;display:flex;align-items:center;gap:4px">
-        <span style="width:8px;height:8px;border-radius:50%;background:#f97316;display:inline-block;flex-shrink:0"></span>Groq API Key
-      </div>
-      <input id="groqKey" type="password" placeholder="gsk_..." autocomplete="off" style="width:100%;padding:8px 10px;border-radius:7px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11px;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'" oninput="saveGroqKey(this.value)">
-      <div style="font-size:9px;color:var(--text3);margin-top:4px;font-family:'JetBrains Mono',monospace">Free at <a href="https://console.groq.com" target="_blank" style="color:var(--accent);text-decoration:none">console.groq.com</a> · saved locally</div>
-    </div>
+
     <button class="run-btn" id="runBtn" onclick="runAnalysis()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
       Run All 8 Layers
@@ -1111,36 +1105,40 @@ const PROMPTS = {
 //  INIT
 // ════════════════════════════════════════════════
 // ════════════════════════════════════════════════
-//  GROQ KEY HELPERS
+//  BACKEND CHAT HELPER
 // ════════════════════════════════════════════════
-function getGroqKey() {
-  return document.getElementById('groqKey')?.value?.trim() || localStorage.getItem('datamind_groq_key') || '';
-}
-function saveGroqKey(val) {
-  if (val) localStorage.setItem('datamind_groq_key', val);
-  else localStorage.removeItem('datamind_groq_key');
-  const dot = document.getElementById('sdot'), txt = document.getElementById('stext');
-  if (val) { dot.className='sdot on'; txt.textContent='Groq ready'; }
-  else { dot.className='sdot off'; txt.textContent='No API key'; }
+async function backendChat(system, messages) {
+  const r = await fetch(API_DEFAULT + '/api/v1/chat', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ system, messages })
+  });
+  if (!r.ok) throw new Error('Backend chat error: HTTP ' + r.status);
+  const data = await r.json();
+  if (!data.reply) throw new Error('Empty reply from backend');
+  return data;
 }
 
 window.onload = async () => {
   updatePrompts();
-  const saved = localStorage.getItem('datamind_groq_key');
-  if (saved) { const inp = document.getElementById('groqKey'); if (inp) inp.value = saved; }
   await checkHealth();
 };
 
 async function checkHealth() {
   const dot = document.getElementById('sdot'), txt = document.getElementById('stext');
-  const key = getGroqKey();
-  if (key) { dot.className='sdot on'; txt.textContent='Groq ready'; return; }
   try {
-    const r = await fetch(API_DEFAULT + '/health', {signal: AbortSignal.timeout(4000)});
+    const r = await fetch(API_DEFAULT + '/health', {signal: AbortSignal.timeout(5000)});
     const d = await r.json();
-    if (d.status === 'healthy') { dot.className='sdot on'; txt.textContent='Backend connected'; }
-    else { dot.className='sdot wait'; txt.textContent='Add Groq key'; }
-  } catch { dot.className='sdot wait'; txt.textContent='Add Groq key'; }
+    if (d.status === 'healthy') {
+      dot.className = 'sdot on';
+      const active = d.active?.join(', ') || 'connected';
+      txt.textContent = d.chat ? 'AI: ' + active : 'Connected (no AI key)';
+    } else {
+      dot.className = 'sdot off'; txt.textContent = 'Backend error';
+    }
+  } catch {
+    dot.className = 'sdot off'; txt.textContent = 'Backend offline';
+  }
 }
 
 function selInd(btn) {
@@ -1285,7 +1283,7 @@ async function runAnalysis() {
 
   switchLayer(1, null);
   document.getElementById('mainPanel').scrollTop = 0;
-  toast('All 8 layers ready · ' + (getGroqKey() ? 'Groq AI' : 'Local mode'), 'ok');
+  toast('All 8 layers ready · ' + (mainResult.provider !== 'local' ? mainResult.provider : 'Local mode'), 'ok');
 
   isRunning = false;
   btn.disabled = false;
@@ -1788,29 +1786,13 @@ Write:
 
 Be concise, professional and use the actual numbers from the data. No markdown headers, just clear sections.`;
 
-  const groqKey = getGroqKey();
-  if (!groqKey) { toast('Add your Groq API key in the sidebar first', 'err'); document.getElementById('groqKey')?.focus(); return; }
   try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + groqKey},
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        max_tokens: 1000,
-        messages: [
-          {role: 'system', content: systemPrompt},
-          {role: 'user', content: userPrompt}
-        ]
-      })
-    });
-    const data = await response.json();
-    if (data.error) throw new Error(data.error.message);
-    const text = data.choices?.[0]?.message?.content || '';
-    renderReportPreview(text, org, period, template, iname);
-    toast('Report generated · Groq llama-3.3-70b', 'ok');
+    const data = await backendChat(systemPrompt, [{role: 'user', content: userPrompt}]);
+    renderReportPreview(data.reply, org, period, template, iname);
+    toast('Report generated via ' + (data.provider || 'AI'), 'ok');
   } catch(err) {
     renderReportPreview(buildLocalReport(org, period, iname), org, period, template, iname);
-    toast('Groq error — local fallback: ' + err.message.substring(0,40), 'err');
+    toast('Backend unavailable — local fallback used', 'err');
   }
 }
 
@@ -1852,7 +1834,7 @@ function renderReportPreview(text, org, period, template, iname) {
 }
 
 // ════════════════════════════════════════════════
-//  LAYER 2: AI COPILOT (via Claude API)
+//  LAYER 2: AI COPILOT (via Railway backend)
 // ════════════════════════════════════════════════
 const chatHistory = [];
 
@@ -1890,35 +1872,16 @@ async function sendCopilot() {
 
   const dataCtx = lastResult ? `\n\nCurrent analysis context: Industry: ${industry}. Metrics: ${JSON.stringify(lastResult.metrics?.slice(0,5)||[])}. Insights: ${JSON.stringify(lastResult.insights?.slice(0,4)||[])}. Fraud risk: ${lastFinResult?.fraud?.risk_level||'N/A'}. Accounting health: ${lastFinResult?.accounting?.health_score||'N/A'}/100.` : '';
 
-  const groqKey = getGroqKey();
-  if (!groqKey) {
-    thinking.remove();
-    appendMsg('ai', 'Please add your Groq API key in the sidebar to use the AI Copilot. Get a free key at console.groq.com');
-    return;
-  }
   try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + groqKey},
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        max_tokens: 1000,
-        messages: [
-          {role: 'system', content: systemPrompt + dataCtx},
-          ...chatHistory.slice(-10)
-        ]
-      })
-    });
-    const data = await response.json();
-    if (data.error) throw new Error(data.error.message);
-    const reply = data.choices?.[0]?.message?.content || 'No response received.';
+    const data = await backendChat(systemPrompt + dataCtx, chatHistory.slice(-10));
+    const reply = data.reply || 'No response received.';
     thinking.remove();
     appendMsg('ai', reply);
     chatHistory.push({role:'assistant', content:reply});
   } catch(err) {
     thinking.remove();
     const fallback = lastResult
-      ? `I hit an error reaching Groq: ${err.message.substring(0,60)}. Check your API key in the sidebar.`
+      ? 'Backend unavailable right now. Check that your Railway service is running and GROQ_API_KEY is set.'
       : 'Please run an analysis first so I have your data context, then I can give you specific insights.';
     appendMsg('ai', fallback);
     chatHistory.push({role:'assistant', content:fallback});
