@@ -408,6 +408,9 @@ tr:hover td{background:rgba(255,255,255,.02)}
         </div>
         <div class="page-actions">
           <button class="action-btn" onclick="exportCSV()"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export CSV</button>
+          <button class="action-btn" onclick="downloadDoc('pdf')"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PDF</button>
+          <button class="action-btn" onclick="downloadDoc('word')"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Word</button>
+          <button class="action-btn primary" onclick="downloadDoc('pptx')"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>PowerPoint</button>
         </div>
       </div>
       <div class="query-banner" id="queryBanner">
@@ -479,6 +482,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
         <div class="page-actions">
           <button class="action-btn" onclick="downloadDoc('word')"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Word</button>
           <button class="action-btn" onclick="downloadDoc('pdf')"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PDF</button>
+          <button class="action-btn primary" onclick="downloadDoc('pptx')"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>PowerPoint</button>
         </div>
       </div>
       <div id="financeTabsBar" style="display:none">
@@ -716,7 +720,42 @@ function buildSqlSamples(data){if(!data||!data.length)return;const nk=Object.key
 async function runSQL(){const input=document.getElementById('sqlInput').value.trim();if(!input){toast('Enter a query','err');return;}if(!rawData){toast('Run an analysis first','err');return;}const btn=document.getElementById('sqlRunBtn');btn.disabled=true;btn.textContent='Running...';const card=document.getElementById('sqlResultCard');const genDiv=document.getElementById('sqlGenerated');const metaDiv=document.getElementById('sqlMeta');const resDiv=document.getElementById('sqlResult');try{let result,generatedSQL=null;if(sqlMode==='nl'){const r=await fetch(getUrl()+'/api/v1/sql/natural',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:filteredData||rawData,question:input,execute:true})});if(!r.ok)throw new Error('HTTP '+r.status);const d=await r.json();generatedSQL=d.sql;result=d.result;}else{const r=await fetch(getUrl()+'/api/v1/sql/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:filteredData||rawData,query:input})});if(!r.ok)throw new Error('HTTP '+r.status);result=await r.json();}card.style.display='block';if(generatedSQL)genDiv.innerHTML=`<div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">Generated SQL</div><div class="sql-generated">${generatedSQL}</div>`;else genDiv.innerHTML='';if(result.success){metaDiv.innerHTML=`<span>${result.row_count} rows</span><span>${result.col_count} columns</span><span>${result.execution_ms}ms</span>${result.truncated?'<span style="color:var(--warn)">showing first 500</span>':''}`;if(result.data&&result.data.length){const cols=result.columns;resDiv.innerHTML=`<div class="table-wrap"><table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>${result.data.slice(0,100).map(row=>`<tr>${cols.map(c=>`<td>${row[c]!=null?(typeof row[c]==='number'?(+row[c]).toLocaleString(undefined,{maximumFractionDigits:2}):row[c]):''}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;}else resDiv.innerHTML='<div style="color:var(--text2);padding:20px;text-align:center">Query ran but returned no rows.</div>';toast('Query complete — '+result.row_count+' rows','ok');}else{metaDiv.innerHTML='';resDiv.innerHTML=`<div class="sql-error">${result.error}${result.hint?`<div class="sql-hint">${result.hint}</div>`:''}</div>`;toast('Query error','err');}}catch(err){card.style.display='block';resDiv.innerHTML=`<div class="sql-error">${err.message}</div>`;toast('SQL failed','err');}btn.disabled=false;btn.textContent='Run Query';}
 
 // DOCUMENT DOWNLOAD
-async function downloadDoc(format){if(!lastResult){toast('Run an analysis first','err');return;}toast('Generating '+format.toUpperCase()+' document...','ok');try{const r=await fetch(getUrl()+'/api/v1/export/'+format,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({result:lastResult,finance:lastFinanceResult})});if(!r.ok)throw new Error('HTTP '+r.status);const blob=await r.blob();const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`DataMind_${industry}_${new Date().toISOString().slice(0,10)}.${format==='word'?'docx':'pdf'}`;a.click();URL.revokeObjectURL(url);toast(format.toUpperCase()+' downloaded','ok');}catch(err){toast('Export failed — '+err.message.substring(0,30),'err');}}
+async function captureCharts(){
+  // Capture all rendered Plotly charts on the dashboard as PNG images
+  const images=[];
+  const cards=document.querySelectorAll('#chartsGrid .chart-card');
+  for(const card of cards){
+    const plotDiv=card.querySelector('.chart-wrap');
+    const title=card.querySelector('.chart-title')?.textContent||'';
+    const subtitle=card.querySelector('.chart-subtitle')?.textContent||'';
+    if(plotDiv&&plotDiv.querySelector('.plotly')){
+      try{
+        const dataUrl=await Plotly.toImage(plotDiv,{format:'png',width:1000,height:500,scale:2});
+        images.push({title,subtitle,image:dataUrl});
+      }catch(e){console.warn('Chart capture failed:',e);}
+    }
+  }
+  return images;
+}
+
+async function downloadDoc(format){
+  if(!lastResult){toast('Run an analysis first','err');return;}
+  const labels={word:'Word',pdf:'PDF',pptx:'PowerPoint'};
+  toast('Generating '+labels[format]+' — capturing charts...','ok');
+  try{
+    // Capture charts as images first (works best when dashboard has rendered)
+    let chartImages=[];
+    try{chartImages=await captureCharts();}catch(e){console.warn('Capture skipped',e);}
+    const r=await fetch(getUrl()+'/api/v1/export/'+format,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({result:lastResult,finance:lastFinanceResult,chart_images:chartImages})});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const blob=await r.blob();
+    const url=URL.createObjectURL(blob);
+    const ext=format==='word'?'docx':format==='pptx'?'pptx':'pdf';
+    const a=document.createElement('a');a.href=url;a.download=`DataMind_${industry}_${new Date().toISOString().slice(0,10)}.${ext}`;a.click();
+    URL.revokeObjectURL(url);
+    toast(labels[format]+' downloaded'+(chartImages.length?` with ${chartImages.length} charts`:''),'ok');
+  }catch(err){toast('Export failed — '+err.message.substring(0,30),'err');}
+}
 
 function exportCSV(){const data=filteredData||rawData;if(!data||!data.length){toast('No data','err');return;}const cols=Object.keys(data[0]);const csv=[cols.join(','),...data.map(r=>cols.map(c=>{const v=r[c];return typeof v==='string'&&v.includes(',')?`"${v}"`:v??'';}).join(','))].join('\n');const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`datamind_${industry}_${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(url);toast('CSV exported','ok');}
 
