@@ -327,10 +327,11 @@ tr:hover td{background:rgba(255,255,255,.02)}
     <button class="nav-tab active" data-page="analyse" onclick="switchPage('analyse',this)"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>Analyse</span></button>
     <button class="nav-tab" data-page="dashboard" onclick="switchPage('dashboard',this)"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg><span>Dashboard</span></button>
     <button class="nav-tab" data-page="sql" onclick="switchPage('sql',this)"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg><span>SQL Studio</span></button>
+    <button class="nav-tab" data-page="forecast" onclick="switchPage('forecast',this)"><svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg><span>Forecast</span></button>
     <button class="nav-tab" data-page="insights" onclick="switchPage('insights',this)"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.5.5 1 1.3 1 2.3h6c0-1 .5-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg><span>Insights</span></button>
   </div>
   <div class="nav-right">
-    <div class="api-pill"><div class="sdot wait" id="sdot"></div><span id="stext">Connecting</span></div>
+    <div class="api-pill" onclick="checkHealth()" style="cursor:pointer" title="Click to re-check the backend"><div class="sdot wait" id="sdot"></div><span id="stext">Connecting</span></div>
     <button class="theme-btn" onclick="toggleThemePanel()">Theme</button>
   </div>
 </nav>
@@ -364,12 +365,38 @@ tr:hover td{background:rgba(255,255,255,.02)}
     <div class="analyse-card">
       <div class="analyse-card-title">2 — Upload Data (optional)</div>
       <div class="upload-zone" id="upZone" onclick="document.getElementById('fileInput').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="onDrop(event)">
-        <div class="uz-title">Click or drag your file here</div>
-        <div class="uz-sub">Or use built-in sample data for your industry</div>
+        <div class="uz-title">Click or drag your files here</div>
+        <div class="uz-sub">Upload one file or several — they can be combined</div>
         <div class="uz-fmt">CSV · Excel · PDF · JSON · Parquet</div>
       </div>
-      <input type="file" id="fileInput" accept=".csv,.tsv,.xlsx,.xlsm,.xls,.json,.parquet,.pdf" onchange="onFileSelect(event)">
-      <div id="fpill" style="display:none" class="fpill"><span id="fname">file.csv</span><span class="fpill-x" onclick="clearFile()">✕</span></div>
+      <input type="file" id="fileInput" accept=".csv,.tsv,.xlsx,.xlsm,.xls,.json,.parquet,.pdf" multiple onchange="onFileSelect(event)">
+      <div id="fileList" style="display:none;flex-direction:column;gap:5px;margin-top:8px"></div>
+
+      <!-- Multi-file merge controls -->
+      <div id="mergeBar" style="display:none;margin-top:10px;padding:11px 13px;background:var(--card2);border:1px solid var(--border2);border-radius:8px">
+        <div class="slicer-label" style="margin-bottom:7px">Multiple files — how should they combine?</div>
+        <div style="display:flex;flex-wrap:wrap;gap:7px;align-items:flex-end">
+          <div class="slicer-group" style="min-width:160px">
+            <div class="slicer-label">Strategy</div>
+            <select class="slicer-select" id="mergeStrategy" onchange="onMergeStrategyChange()">
+              <option value="stack">Stack rows (append)</option>
+              <option value="join">Join columns (shared key)</option>
+              <option value="separate">Keep separate — pick one</option>
+            </select>
+          </div>
+          <div class="slicer-group" id="joinKeyGroup" style="display:none;min-width:140px">
+            <div class="slicer-label">Join key</div>
+            <input class="slicer-select" id="joinKey" placeholder="auto-detect" style="cursor:text">
+          </div>
+          <button class="apply-btn" onclick="processFiles()">Combine &amp; Load</button>
+        </div>
+      </div>
+
+      <!-- Separate-file picker (when strategy = separate) -->
+      <div id="datasetPicker" style="display:none;margin-top:10px">
+        <div class="slicer-label" style="margin-bottom:5px">Choose which dataset to analyse</div>
+        <div id="datasetTabs" style="display:flex;flex-wrap:wrap;gap:5px"></div>
+      </div>
 
       <!-- Excel sheet picker -->
       <div id="sheetPicker" style="display:none;margin-top:10px">
@@ -477,6 +504,70 @@ tr:hover td{background:rgba(255,255,255,.02)}
         <div id="sqlGenerated"></div>
         <div class="sql-result-meta" id="sqlMeta"></div>
         <div id="sqlResult"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FORECAST PAGE -->
+<div class="page" id="page-forecast">
+  <div class="content-wrap">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Predictive Analytics</div>
+        <div class="page-subtitle">Forecast future periods with honest confidence intervals. Test what-if scenarios.</div>
+      </div>
+    </div>
+
+    <div id="fcEmpty" class="empty-state">
+      <div class="empty-icon"><svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>
+      <div class="empty-title">No data to forecast</div>
+      <div class="empty-sub">Run an analysis first. You need at least 4 historical periods to produce a forecast.</div>
+      <button class="action-btn primary" onclick="switchPage('analyse',null)">Go to Analyse</button>
+    </div>
+
+    <div id="fcContent" style="display:none">
+      <!-- Controls -->
+      <div class="slicers-bar" style="position:static;box-shadow:none">
+        <div class="slicers-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Forecast settings</div>
+        <div class="slicers-row">
+          <div class="slicer-group">
+            <div class="slicer-label">Periods ahead</div>
+            <select class="slicer-select" id="fcPeriods">
+              <option value="1">1 period</option>
+              <option value="3" selected>3 periods</option>
+              <option value="6">6 periods</option>
+              <option value="12">12 periods</option>
+            </select>
+          </div>
+          <div class="slicer-group" style="min-width:170px">
+            <div class="slicer-label">Metric to forecast</div>
+            <select class="slicer-select" id="fcTarget"><option value="">All numeric columns</option></select>
+          </div>
+          <button class="apply-btn" onclick="runForecast()">Run Forecast</button>
+        </div>
+      </div>
+
+      <div id="fcResults"></div>
+
+      <!-- What-if -->
+      <div class="sql-editor-card" style="margin-top:16px">
+        <div class="section-head" style="margin-bottom:12px"><div class="section-title">What-if scenario</div><div class="section-line"></div></div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:12px;font-family:'Newsreader',serif">
+          Change one variable and see the projected effect on another, based on their historical relationship.
+        </div>
+        <div class="slicers-row">
+          <div class="slicer-group"><div class="slicer-label">If this changes</div><select class="slicer-select" id="wiDriver"></select></div>
+          <div class="slicer-group"><div class="slicer-label">By</div>
+            <div class="slicer-range">
+              <input class="slicer-num" type="number" id="wiChange" value="10" step="5">
+              <span class="slicer-dash">%</span>
+            </div>
+          </div>
+          <div class="slicer-group"><div class="slicer-label">Then this is affected</div><select class="slicer-select" id="wiTarget"></select></div>
+          <button class="apply-btn" onclick="runScenario()">Project</button>
+        </div>
+        <div id="wiResult" style="margin-top:14px"></div>
       </div>
     </div>
   </div>
@@ -612,45 +703,108 @@ function switchPage(page,btn){
   else document.querySelector(`.nav-tab[data-page="${page}"]`)?.classList.add('active');
   window.scrollTo(0,0);
   if(page==='dashboard'&&lastResult)setTimeout(()=>{if(filteredData)rebuildCharts(filteredData);},50);
+  if(page==='forecast'&&(filteredData||rawData))initForecastPage(filteredData||rawData);
 }
 
-async function checkHealth(){const dot=document.getElementById('sdot'),txt=document.getElementById('stext');try{const r=await fetch(getUrl()+'/health',{signal:AbortSignal.timeout(6000)});const d=await r.json();if(d.status==='healthy'){dot.className='sdot on';txt.textContent='Connected';}else{dot.className='sdot off';txt.textContent='Error';}}catch{dot.className='sdot off';txt.textContent='Offline';}}
+async function checkHealth(){
+  const dot=document.getElementById('sdot'),txt=document.getElementById('stext');
+  dot.className='sdot wait'; txt.textContent='Checking';
+  try{
+    const r=await fetch(getUrl()+'/health',{signal:AbortSignal.timeout(8000)});
+    const d=await r.json();
+    if(d.status!=='healthy'){dot.className='sdot off';txt.textContent='Error';return;}
+    // Backend is up. Now check the parsing libraries.
+    dot.className='sdot on'; txt.textContent='Connected';
+    try{
+      const hr=await fetch(getUrl()+'/api/v1/upload/health',{signal:AbortSignal.timeout(8000)});
+      const h=await hr.json();
+      if(h.all_ready){txt.textContent='Ready';}
+      else{
+        const missing=Object.entries(h.libraries||{}).filter(([k,v])=>!v.installed).map(([k])=>k);
+        dot.className='sdot wait';
+        txt.textContent='Partial';
+        txt.title='Missing on server: '+missing.join(', ');
+      }
+    }catch{/* upload health not deployed yet — connection is still fine */}
+  }catch{dot.className='sdot off';txt.textContent='Offline';}
+}
 function getUrl(){return(document.getElementById('apiUrl')?.value||API_DEFAULT).replace(/\/$/,'');}
 function toggleThemePanel(){themePanelOpen=!themePanelOpen;document.getElementById('themePanel').classList.toggle('open',themePanelOpen);}
 function setTheme(n,el){document.body.className='theme-'+n;document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('active'));el.classList.add('active');}
 function selInd(btn){document.querySelectorAll('.ind-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');industry=btn.dataset.v;updatePrompts();}
 function updatePrompts(){const ps=PROMPTS[industry]||PROMPTS.general;document.getElementById('qprompts').innerHTML=ps.map(p=>`<button class="qp" onclick="setQ('${p.replace(/'/g,"\\'")}')">${p}</button>`).join('');}
 function setQ(t){document.getElementById('queryInput').value=t;}
-let currentFile=null, currentSheets=[], previewVisible=true;
-
-async function onFileSelect(e){const f=e.target.files[0];if(f)await handleFile(f);}
-function onDrop(e){e.preventDefault();document.getElementById('upZone').classList.remove('drag');const f=e.dataTransfer.files[0];if(f)handleFile(f);}
+let selectedFiles=[], currentFile=null, currentSheets=[], previewVisible=true;
+let parsedDatasets={}, activeDataset=null;
 
 function fileExt(name){return (name.split('.').pop()||'').toLowerCase();}
 
-async function handleFile(f){
-  currentFile=f;
-  document.getElementById('fname').textContent=f.name;
-  document.getElementById('fpill').style.display='flex';
-  document.getElementById('sheetPicker').style.display='none';
-  document.getElementById('pdfInfo').style.display='none';
-  document.getElementById('filePreview').style.display='none';
+async function onFileSelect(e){const fs=Array.from(e.target.files||[]);if(fs.length)await handleFiles(fs);}
+function onDrop(e){e.preventDefault();document.getElementById('upZone').classList.remove('drag');const fs=Array.from(e.dataTransfer.files||[]);if(fs.length)handleFiles(fs);}
 
+function renderFileList(){
+  const el=document.getElementById('fileList');
+  if(!selectedFiles.length){el.style.display='none';return;}
+  el.style.display='flex';
+  el.innerHTML=selectedFiles.map((f,i)=>
+    `<div class="fpill"><span>${f.name}</span>`+
+    `<span style="color:var(--text3);font-size:10px;margin-left:6px">${(f.size/1024).toFixed(0)} KB</span>`+
+    `<span class="fpill-x" onclick="removeFile(${i})">✕</span></div>`
+  ).join('');
+}
+
+function removeFile(i){
+  selectedFiles.splice(i,1);
+  if(!selectedFiles.length){clearFile();return;}
+  renderFileList();
+  handleFiles(selectedFiles,true);
+}
+
+async function handleFiles(files,skipReset){
+  if(files.length>10){toast('Maximum 10 files at once','err');return;}
+  if(!skipReset)selectedFiles=files;
+  renderFileList();
+  hidePanels();
+
+  if(selectedFiles.length===1){
+    document.getElementById('mergeBar').style.display='none';
+    await handleSingleFile(selectedFiles[0]);
+    return;
+  }
+
+  // Multiple files: show merge controls, then parse
+  document.getElementById('mergeBar').style.display='block';
+  await processFiles();
+}
+
+function hidePanels(){
+  ['sheetPicker','pdfInfo','filePreview','datasetPicker'].forEach(id=>{
+    const e=document.getElementById(id); if(e)e.style.display='none';
+  });
+}
+
+function onMergeStrategyChange(){
+  const s=document.getElementById('mergeStrategy').value;
+  document.getElementById('joinKeyGroup').style.display=s==='join'?'flex':'none';
+}
+
+// ── SINGLE FILE ────────────────────────────────────────────────────────────
+async function handleSingleFile(f){
+  currentFile=f;
   const ext=fileExt(f.name);
   const isExcel=['xlsx','xlsm','xls'].includes(ext);
   const isPdf=ext==='pdf';
-
   toast('Reading '+f.name+'...','ok');
 
-  // Excel and PDF need backend inspection first
   if(isExcel||isPdf){
     try{
       const fd=new FormData(); fd.append('file',f);
       const r=await fetch(getUrl()+'/api/v1/upload/inspect',{method:'POST',body:fd});
-      if(!r.ok)throw new Error('HTTP '+r.status);
-      const info=await r.json();
-      if(!info.success)throw new Error(info.error||'Could not read file');
-
+      const info=await r.json().catch(()=>({success:false,error:'Server returned an invalid response'}));
+      if(!info.success){
+        showParseError(info.error||'Could not read this file', info.hint);
+        return;
+      }
       if(info.type==='excel'){
         currentSheets=info.sheets||[];
         if(currentSheets.length>1){
@@ -658,78 +812,149 @@ async function handleFile(f){
           document.getElementById('sheetPicker').style.display='block';
         }
         const biggest=currentSheets.reduce((a,b)=>b.rows>a.rows?b:a,currentSheets[0]);
-        await loadSheet(biggest.name);
+        await parseOne(f,biggest.name);
         return;
       }
       if(info.type==='pdf'){
-        document.getElementById('pdfInfo').style.display='block';
-        document.getElementById('pdfInfo').innerHTML=
-          `<strong style="color:var(--accent)">PDF scanned:</strong> ${info.pages} page${info.pages!==1?'s':''}, `+
+        const pi=document.getElementById('pdfInfo');
+        pi.style.display='block';
+        pi.innerHTML=`<strong style="color:var(--accent)">PDF scanned:</strong> ${info.pages} page${info.pages!==1?'s':''}, `+
           `${info.tables_found} table${info.tables_found!==1?'s':''} detected. `+
-          (info.tables_found?'Extracting the largest table.':'No tables found — try exporting to CSV instead.');
-        if(!info.tables_found){toast('No tables found in this PDF','err');return;}
-        await parseViaBackend(f);
+          (info.tables_found?'Extracting the largest table.':'No tables found.');
+        if(!info.tables_found){
+          pi.innerHTML+=`<div style="margin-top:6px;color:var(--warn)">This PDF has no structured tables. Export it to CSV or Excel first.</div>`;
+          toast('No tables found in this PDF','err'); return;
+        }
+        await parseOne(f);
         return;
       }
     }catch(err){
-      toast('Could not read file — '+err.message.substring(0,30),'err');
+      showParseError('Could not reach the server: '+err.message,
+        'Check that your backend URL is correct and the service is running.');
       return;
     }
   }
-
-  // CSV/JSON/Parquet — send to backend for robust parsing
-  await parseViaBackend(f);
+  await parseOne(f);
 }
 
-async function parseViaBackend(f, sheetName){
+async function parseOne(f,sheetName){
   try{
     const fd=new FormData(); fd.append('file',f);
     if(sheetName)fd.append('sheet_name',sheetName);
     const r=await fetch(getUrl()+'/api/v1/upload/parse',{method:'POST',body:fd});
-    if(!r.ok)throw new Error('HTTP '+r.status);
-    const res=await r.json();
-    if(!res.success){
-      toast(res.error||'Parse failed','err');
-      if(res.hint)document.getElementById('pdfInfo').innerHTML+=`<div style="margin-top:6px;color:var(--warn)">${res.hint}</div>`;
-      return;
-    }
+    const res=await r.json().catch(()=>({success:false,error:'Server returned an invalid response'}));
+    if(!res.success){showParseError(res.error,res.hint);return;}
     uploadedData=res.records;
     showPreview(res);
     toast(f.name+' loaded — '+res.row_count+' rows, '+res.col_count+' columns','ok');
   }catch(err){
-    // Fallback: client-side CSV parse so the app still works if the backend is down
-    if(fileExt(f.name)==='csv'){
-      const txt=await f.text();
-      const rows=txt.trim().split('\n');
-      const hdrs=rows[0].split(',').map(h=>h.trim().replace(/^"|"$/g,''));
-      uploadedData=rows.slice(1).map(r=>{const vs=r.split(',').map(v=>v.trim().replace(/^"|"$/g,''));const o={};hdrs.forEach((h,i)=>{const n=parseFloat(vs[i]);o[h]=isNaN(n)?vs[i]:n;});return o;}).filter(r=>Object.values(r).some(v=>v!==''));
-      showPreview({records:uploadedData,columns:hdrs,row_count:uploadedData.length,col_count:hdrs.length,source_format:'csv (local)'});
-      toast(f.name+' loaded locally — '+uploadedData.length+' rows','ok');
-    }else{
-      toast('Parse failed — '+err.message.substring(0,30),'err');
-    }
+    if(fileExt(f.name)==='csv'){await parseCsvLocally(f);}
+    else showParseError('Parse failed: '+err.message);
   }
 }
 
+async function parseCsvLocally(f){
+  const txt=await f.text();
+  const rows=txt.trim().split('\n');
+  const hdrs=rows[0].split(',').map(h=>h.trim().replace(/^"|"$/g,''));
+  uploadedData=rows.slice(1).map(r=>{const vs=r.split(',').map(v=>v.trim().replace(/^"|"$/g,''));const o={};hdrs.forEach((h,i)=>{const n=parseFloat(vs[i]);o[h]=isNaN(n)?vs[i]:n;});return o;}).filter(r=>Object.values(r).some(v=>v!==''));
+  showPreview({records:uploadedData,columns:hdrs,row_count:uploadedData.length,col_count:hdrs.length,source_format:'csv (parsed locally — backend unreachable)'});
+  toast(f.name+' loaded locally — '+uploadedData.length+' rows','ok');
+}
+
+// ── MULTIPLE FILES ─────────────────────────────────────────────────────────
+async function processFiles(){
+  if(selectedFiles.length<2)return;
+  const strategy=document.getElementById('mergeStrategy').value;
+  const joinKey=document.getElementById('joinKey').value.trim();
+  toast(`Parsing ${selectedFiles.length} files...`,'ok');
+  hidePanels();
+
+  try{
+    const fd=new FormData();
+    selectedFiles.forEach(f=>fd.append('files',f));
+    fd.append('merge', strategy!=='separate' ? 'true':'false');
+    fd.append('merge_strategy', strategy==='separate'?'stack':strategy);
+    if(joinKey)fd.append('join_key',joinKey);
+
+    const r=await fetch(getUrl()+'/api/v1/upload/parse-multi',{method:'POST',body:fd});
+    const res=await r.json().catch(()=>({success:false,error:'Server returned an invalid response'}));
+    if(!res.success){showParseError(res.error,'Check the failures list below.',res.failures);return;}
+
+    if(res.failed_count>0){
+      const names=(res.failures||[]).map(f=>f.filename).join(', ');
+      toast(`${res.failed_count} file(s) failed: ${names}`,'err');
+    }
+
+    if(strategy==='separate'){
+      parsedDatasets=res.records_by_file||{};
+      const names=Object.keys(parsedDatasets);
+      renderDatasetTabs(names,res.datasets||[]);
+      document.getElementById('datasetPicker').style.display='block';
+      if(names.length)selectDataset(names[0]);
+      return;
+    }
+
+    if(res.merge_error){showParseError('Could not combine files: '+res.merge_error,
+      'Try "Stack rows" instead, or specify a join key that exists in every file.');return;}
+
+    const m=res.merged;
+    uploadedData=m.records;
+    let note='';
+    if(m.strategy==='stack'&&m.rows_per_file)
+      note=' · '+Object.entries(m.rows_per_file).map(([f,n])=>`${f}: ${n}`).join(', ');
+    if(m.strategy==='join')note=` · joined on "${m.join_key}"`;
+    showPreview({...m,source_format:`${res.file_count} files ${m.strategy==='join'?'joined':'stacked'}${note}`});
+    toast(`${res.file_count} files combined — ${m.row_count} rows, ${m.col_count} columns`,'ok');
+  }catch(err){
+    showParseError('Could not reach the server: '+err.message,
+      'Check that your backend URL is correct and the service is running.');
+  }
+}
+
+function renderDatasetTabs(names,meta){
+  const byName={}; (meta||[]).forEach(d=>byName[d.filename]=d);
+  document.getElementById('datasetTabs').innerHTML=names.map(n=>{
+    const m=byName[n]||{};
+    return `<button class="sql-sample" data-ds="${n}" onclick="selectDataset('${n.replace(/'/g,"\\'")}',this)">${n}${m.row_count?` <span style="opacity:.6">(${m.row_count})</span>`:''}</button>`;
+  }).join('');
+}
+
+function selectDataset(name,btn){
+  activeDataset=name;
+  uploadedData=parsedDatasets[name]||[];
+  document.querySelectorAll('#datasetTabs .sql-sample').forEach(b=>{b.style.borderColor='var(--border)';b.style.color='var(--text2)';});
+  const t=btn||document.querySelector(`#datasetTabs [data-ds="${CSS.escape(name)}"]`);
+  if(t){t.style.borderColor='var(--accent)';t.style.color='var(--accent)';}
+  if(uploadedData.length){
+    showPreview({records:uploadedData,columns:Object.keys(uploadedData[0]),
+      row_count:uploadedData.length,col_count:Object.keys(uploadedData[0]).length,
+      source_format:'selected: '+name});
+    toast(name+' selected — '+uploadedData.length+' rows','ok');
+  }
+}
+
+// ── EXCEL SHEETS ───────────────────────────────────────────────────────────
 function renderSheetTabs(sheets){
-  document.getElementById('sheetTabs').innerHTML=sheets.map((s,i)=>
+  document.getElementById('sheetTabs').innerHTML=sheets.map(s=>
     `<button class="sql-sample" data-sheet="${s.name}" onclick="loadSheet('${s.name.replace(/'/g,"\\'")}',this)">${s.name} <span style="opacity:.6">(${s.rows})</span></button>`
   ).join('');
 }
-
 async function loadSheet(name,btn){
   if(!currentFile)return;
   document.querySelectorAll('#sheetTabs .sql-sample').forEach(b=>{b.style.borderColor='var(--border)';b.style.color='var(--text2)';});
-  const target=btn||document.querySelector(`#sheetTabs [data-sheet="${CSS.escape(name)}"]`);
-  if(target){target.style.borderColor='var(--accent)';target.style.color='var(--accent)';}
-  await parseViaBackend(currentFile,name);
+  const t=btn||document.querySelector(`#sheetTabs [data-sheet="${CSS.escape(name)}"]`);
+  if(t){t.style.borderColor='var(--accent)';t.style.color='var(--accent)';}
+  await parseOne(currentFile,name);
 }
 
+// ── PREVIEW + ERRORS ───────────────────────────────────────────────────────
 function showPreview(res){
   const rows=(res.records||[]).slice(0,8);
   if(!rows.length){document.getElementById('filePreview').style.display='none';return;}
   document.getElementById('filePreview').style.display='block';
   previewVisible=true;
+  document.getElementById('filePreviewTable').style.display='block';
   const fmt=res.source_format||'file';
   const sheet=res.sheet_used?` · sheet "${res.sheet_used}"`:'';
   const tbl=res.table_used?` · table on page ${res.table_used.page}`:'';
@@ -742,6 +967,31 @@ function showPreview(res){
     `</tbody></table></div>`;
 }
 
+function showParseError(msg,hint,failures){
+  const pi=document.getElementById('pdfInfo');
+  pi.style.display='block';
+  pi.style.borderColor='rgba(240,64,96,.3)';
+  let html=`<strong style="color:var(--red)">Could not read your file</strong><div style="margin-top:5px;color:var(--text2)">${msg||'Unknown error'}</div>`;
+  if(hint)html+=`<div style="margin-top:6px;color:var(--warn)">${hint}</div>`;
+  if(failures&&failures.length)
+    html+=`<div style="margin-top:6px">`+failures.map(f=>`<div style="color:var(--text3)">• ${f.filename}: ${f.error}</div>`).join('')+`</div>`;
+  html+=`<div style="margin-top:8px"><button class="reset-btn" style="padding:5px 11px;font-size:10px" onclick="checkParserHealth()">Diagnose server</button></div>`;
+  pi.innerHTML=html;
+  toast(msg?msg.substring(0,50):'Could not read file','err');
+}
+
+async function checkParserHealth(){
+  try{
+    const r=await fetch(getUrl()+'/api/v1/upload/health');
+    const h=await r.json();
+    const missing=Object.entries(h.libraries||{}).filter(([k,v])=>!v.installed);
+    if(!missing.length){toast('All parsing libraries installed on the server','ok');return;}
+    const names=missing.map(([k])=>k).join(', ');
+    showParseError(`Server is missing: ${names}`,
+      `Add ${names} to requirements.txt and redeploy on Railway.`);
+  }catch(err){toast('Could not reach the server','err');}
+}
+
 function togglePreview(btn){
   previewVisible=!previewVisible;
   document.getElementById('filePreviewTable').style.display=previewVisible?'block':'none';
@@ -749,12 +999,14 @@ function togglePreview(btn){
 }
 
 function clearFile(){
-  uploadedData=null;currentFile=null;currentSheets=[];
-  document.getElementById('fpill').style.display='none';
+  uploadedData=null;currentFile=null;currentSheets=[];selectedFiles=[];
+  parsedDatasets={};activeDataset=null;
   document.getElementById('fileInput').value='';
-  document.getElementById('sheetPicker').style.display='none';
-  document.getElementById('pdfInfo').style.display='none';
-  document.getElementById('filePreview').style.display='none';
+  document.getElementById('fileList').style.display='none';
+  document.getElementById('mergeBar').style.display='none';
+  hidePanels();
+  const pi=document.getElementById('pdfInfo');
+  if(pi)pi.style.borderColor='var(--border)';
 }
 
 async function runAnalysis(){
@@ -804,6 +1056,8 @@ function renderAll(res,finRes,data,q){
   document.getElementById('sqlEmpty').style.display='none';
   document.getElementById('sqlContent').style.display='grid';
   buildSqlSamples(data);
+  // Forecast page
+  initForecastPage(data);
   // Insights page
   document.getElementById('insEmpty').style.display='none';
   document.getElementById('insContent').style.display='block';
@@ -913,6 +1167,170 @@ function showOv(){ovStep=0;stepOv(1);document.getElementById('overlay').classLis
 function stepOv(n){for(let i=1;i<=4;i++){const e=document.getElementById('ovs'+i);if(e)e.classList.toggle('active',i===n);}const t=['','Cleaning your data','Running the numbers','Building query-aware charts','Claude writing elite insights'];const s=['','Checking quality and filling gaps','Statistical analysis and pattern detection','Interactive visualisations for your query','Writing recommendations grounded in your data'];if(t[n]){document.getElementById('ovTitle').textContent=t[n];document.getElementById('ovSub').textContent=s[n];}}
 function hideOv(){document.getElementById('overlay').classList.remove('on');}
 function toast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type+' on';setTimeout(()=>t.classList.remove('on'),4000);}
+
+// ── PREDICTIVE ANALYTICS ───────────────────────────────────────────────────
+let lastForecast=null;
+
+function initForecastPage(data){
+  if(!data||!data.length){document.getElementById('fcEmpty').style.display='flex';document.getElementById('fcContent').style.display='none';return;}
+  const nums=Object.keys(data[0]).filter(k=>typeof data[0][k]==='number');
+  if(data.length<4||!nums.length){
+    document.getElementById('fcEmpty').style.display='flex';
+    document.getElementById('fcContent').style.display='none';
+    document.querySelector('#fcEmpty .empty-sub').textContent=
+      data.length<4?`You have ${data.length} periods. Forecasting needs at least 4.`
+                   :'No numeric columns found to forecast.';
+    return;
+  }
+  document.getElementById('fcEmpty').style.display='none';
+  document.getElementById('fcContent').style.display='block';
+  const opts=nums.map(n=>`<option value="${n}">${n.replace(/_/g,' ')}</option>`).join('');
+  document.getElementById('fcTarget').innerHTML='<option value="">All numeric columns</option>'+opts;
+  document.getElementById('wiDriver').innerHTML=opts;
+  document.getElementById('wiTarget').innerHTML=opts;
+  if(nums.length>1)document.getElementById('wiTarget').selectedIndex=1;
+}
+
+async function runForecast(){
+  const data=filteredData||rawData;
+  if(!data||!data.length){toast('No data to forecast','err');return;}
+  const periods=+document.getElementById('fcPeriods').value;
+  const target=document.getElementById('fcTarget').value;
+  document.getElementById('fcResults').innerHTML='<div style="padding:30px;text-align:center;color:var(--text2)">Forecasting...</div>';
+  try{
+    const body={data,periods};
+    if(target)body.target_columns=[target];
+    const r=await fetch(getUrl()+'/api/v1/forecast/predict',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const res=await r.json().catch(()=>({success:false,error:'Invalid server response'}));
+    if(!res.success){
+      document.getElementById('fcResults').innerHTML=
+        `<div class="sql-error">${res.error}${res.hint?`<div class="sql-hint">${res.hint}</div>`:''}</div>`;
+      toast(res.error?res.error.substring(0,50):'Forecast failed','err');return;
+    }
+    lastForecast=res;
+    renderForecast(res,data);
+    toast('Forecast complete — '+res.overall_confidence.level+' confidence','ok');
+  }catch(err){
+    document.getElementById('fcResults').innerHTML=`<div class="sql-error">Could not reach the server: ${err.message}</div>`;
+    toast('Forecast failed','err');
+  }
+}
+
+function renderForecast(res,data){
+  const el=document.getElementById('fcResults');
+  const conf=res.overall_confidence;
+  const cc=conf.level==='High'?'var(--green)':conf.level==='Medium'?'var(--warn)':'var(--red)';
+
+  let html=`<div class="query-banner" style="border-left-color:${cc}">
+    <div class="qb-icon" style="background:${cc}22"><svg viewBox="0 0 24 24" style="stroke:${cc}"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+    <div><div class="qb-label" style="color:${cc}">Forecast confidence: ${conf.level}</div>
+    <div class="qb-text">${conf.note}</div>
+    <div class="qb-focus">${res.history_periods} historical periods → ${res.periods_forecast} forecast periods (${res.future_labels.join(', ')})</div></div></div>`;
+
+  // Chart + card per metric
+  html+='<div class="charts-grid">';
+  Object.entries(res.forecasts).forEach(([col,f],i)=>{
+    if(f.error){html+=`<div class="chart-card"><div class="chart-title">${col}</div><div class="sql-error">${f.error}</div></div>`;return;}
+    const rc=f.reliability.level==='High'?'var(--green)':f.reliability.level==='Medium'?'var(--warn)':'var(--red)';
+    const dir=f.direction==='rising'?'↑':f.direction==='falling'?'↓':'→';
+    html+=`<div class="chart-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px">
+        <div class="chart-title">${col.replace(/_/g,' ')}</div>
+        <span style="padding:2px 8px;border-radius:9px;font-size:9px;font-family:'JetBrains Mono',monospace;background:${rc}22;color:${rc};border:1px solid ${rc}44">${f.reliability.level} · R²=${f.r_squared}</span>
+      </div>
+      <div class="chart-subtitle">${f.method}</div>
+      <div class="chart-wrap" id="fc${i}"></div>
+      <div style="display:flex;gap:14px;margin-top:9px;flex-wrap:wrap;font-size:11px;font-family:'JetBrains Mono',monospace">
+        <span style="color:var(--text2)">Last: <strong style="color:var(--text)">${f.last_actual.toLocaleString()}</strong></span>
+        <span style="color:var(--text2)">Next: <strong style="color:var(--accent)">${f.next_period.toLocaleString()}</strong></span>
+        <span style="color:${f.direction==='rising'?'var(--green)':f.direction==='falling'?'var(--red)':'var(--text2)'}">${dir} ${Math.abs(f.projected_change_pct)}%</span>
+      </div>
+      <div style="font-size:10px;color:var(--text3);margin-top:5px;font-family:'Newsreader',serif">${f.reliability.note}</div>
+    </div>`;
+  });
+  html+='</div>';
+
+  // Drivers
+  if(res.drivers&&Object.keys(res.drivers).length){
+    html+=`<div class="section-head" style="margin-top:16px"><div class="section-title">What moves with what</div><div class="section-line"></div></div>`;
+    html+='<div class="insights-grid">';
+    Object.entries(res.drivers).forEach(([target,d])=>{
+      html+=`<div class="ins-card"><div class="ins-bar info"></div><div>
+        <div class="ins-severity info">Drivers of ${target.replace(/_/g,' ')}</div>`;
+      d.top_drivers.forEach(dr=>{
+        const sc=dr.significant?'var(--green)':'var(--text3)';
+        html+=`<div class="ins-body" style="margin-top:3px">${dr.variable.replace(/_/g,' ')}: <strong>r=${dr.correlation}</strong> (${dr.strength} ${dr.direction}) <span style="color:${sc};font-size:10px">${dr.significant?'significant':'not significant'}</span></div>`;
+      });
+      html+=`<div class="ins-src">${d.caution}</div></div></div>`;
+    });
+    html+='</div>';
+  }
+
+  // Assumptions + caveats
+  html+=`<div class="fin-module-card" style="margin-top:16px">
+    <div class="fin-module-head"><div class="fin-module-title">What this forecast assumes</div>
+      <span class="fin-module-badge badge-info">Read before acting</span></div>
+    <div style="font-family:'Newsreader',serif;font-size:13px;line-height:1.8;color:var(--text2)">
+      ${res.assumptions.map(a=>`<div style="margin-bottom:4px">• ${a}</div>`).join('')}
+    </div>
+    <div class="section-head" style="margin-top:14px"><div class="section-title">Caveats</div><div class="section-line"></div></div>
+    <div style="font-family:'Newsreader',serif;font-size:13px;line-height:1.8;color:var(--warn)">
+      ${res.caveats.map(c=>`<div style="margin-bottom:4px">• ${c}</div>`).join('')}
+    </div>
+  </div>`;
+
+  el.innerHTML=html;
+
+  // Draw charts
+  const labels=data.map(r=>r[res.time_column]||'');
+  Object.entries(res.forecasts).forEach(([col,f],i)=>{
+    if(f.error)return;
+    const hist=data.map(r=>r[col]);
+    const allX=[...labels,...res.future_labels];
+    const histY=[...hist,...Array(res.periods_forecast).fill(null)];
+    const fcY=[...Array(hist.length-1).fill(null),hist[hist.length-1],...f.predictions];
+    const loY=[...Array(hist.length-1).fill(null),hist[hist.length-1],...f.lower_95];
+    const hiY=[...Array(hist.length-1).fill(null),hist[hist.length-1],...f.upper_95];
+    const traces=[
+      {x:allX,y:hiY,type:'scatter',mode:'lines',line:{width:0},showlegend:false,hoverinfo:'skip'},
+      {x:allX,y:loY,type:'scatter',mode:'lines',line:{width:0},fill:'tonexty',fillcolor:'rgba(0,200,190,0.12)',name:'95% interval',hoverinfo:'skip'},
+      {x:allX,y:histY,type:'scatter',mode:'lines+markers',name:'Actual',line:{color:'#00c8be',width:2.5},marker:{size:6}},
+      {x:allX,y:fcY,type:'scatter',mode:'lines+markers',name:'Forecast',line:{color:'#f0a020',width:2.5,dash:'dash'},marker:{size:7,symbol:'diamond'}},
+    ];
+    try{Plotly.newPlot('fc'+i,traces,{...getLayout(250),showlegend:true,legend:{orientation:'h',y:-0.2,font:{color:'#6a85aa',size:10}}},CFG);}catch(e){console.warn(e);}
+  });
+}
+
+async function runScenario(){
+  const data=filteredData||rawData;
+  if(!data||!data.length){toast('No data','err');return;}
+  const driver=document.getElementById('wiDriver').value;
+  const target=document.getElementById('wiTarget').value;
+  const change=+document.getElementById('wiChange').value;
+  if(driver===target){toast('Pick two different metrics','err');return;}
+  const el=document.getElementById('wiResult');
+  el.innerHTML='<div style="padding:16px;text-align:center;color:var(--text2)">Projecting...</div>';
+  try{
+    const r=await fetch(getUrl()+'/api/v1/forecast/scenario',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data,target,driver,change_pct:change})});
+    const res=await r.json().catch(()=>({success:false,error:'Invalid server response'}));
+    if(!res.success){el.innerHTML=`<div class="sql-error">${res.error}</div>`;return;}
+    const rc=res.reliability.level==='High'?'var(--green)':res.reliability.level==='Medium'?'var(--warn)':'var(--red)';
+    const up=res.projected_change_pct>0;
+    el.innerHTML=`
+      <div class="fin-metrics-grid">
+        <div class="fin-metric"><div class="fin-metric-label">Current ${target.replace(/_/g,' ')}</div><div class="fin-metric-value">${res.current_target_estimate.toLocaleString()}</div></div>
+        <div class="fin-metric"><div class="fin-metric-label">If ${driver.replace(/_/g,' ')} ${change>0?'+':''}${change}%</div><div class="fin-metric-value" style="color:var(--accent)">${res.projected_target.toLocaleString()}</div></div>
+        <div class="fin-metric"><div class="fin-metric-label">Projected change</div><div class="fin-metric-value" style="color:${up?'var(--green)':'var(--red)'}">${up?'+':''}${res.projected_change_pct}%</div></div>
+        <div class="fin-metric"><div class="fin-metric-label">Reliability</div><div class="fin-metric-value" style="color:${rc}">${res.reliability.level}</div><div class="fin-metric-bench">R²=${res.relationship.r_squared}, p=${res.relationship.p_value}</div></div>
+      </div>
+      <div style="padding:11px 13px;background:rgba(240,160,32,.06);border:1px solid rgba(240,160,32,.25);border-radius:8px;font-size:12px;color:var(--warn);line-height:1.6;font-family:'Newsreader',serif">
+        <strong>Important:</strong> ${res.warning}
+        ${!res.relationship.significant?'<div style="margin-top:5px">The historical relationship between these two is <strong>not statistically significant</strong> (p &gt; 0.05). Treat this projection as speculative.</div>':''}
+        ${res.out_of_range?'<div style="margin-top:5px">This change pushes the driver <strong>outside the range observed in your data</strong>. The relationship may not hold there.</div>':''}
+      </div>`;
+    toast('Scenario projected','ok');
+  }catch(err){el.innerHTML=`<div class="sql-error">Could not reach the server: ${err.message}</div>`;}
+}
 
 </script>
 </body>
