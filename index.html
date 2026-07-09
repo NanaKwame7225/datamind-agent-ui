@@ -152,25 +152,55 @@ body.theme-light .slicers-bar{box-shadow:0 8px 28px rgba(0,0,0,.12)}
 .up{color:var(--green)}.dn{color:var(--red)}.nt{color:var(--text2)}
 
 /* CHARTS */
-.charts-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;margin-bottom:20px}
-@media(max-width:1100px){.charts-grid{grid-template-columns:repeat(6,1fr)}}
-@media(max-width:760px){.charts-grid{grid-template-columns:1fr}}
-.chart-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:0;overflow:hidden;transition:border-color .22s,transform .22s,box-shadow .22s;display:flex;flex-direction:column;position:relative;grid-column:span 6}
-.chart-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),transparent 65%);opacity:.55}
-.chart-card:hover{border-color:var(--border2);transform:translateY(-1px);box-shadow:0 8px 26px rgba(0,0,0,.28)}
-.chart-card.span-4{grid-column:span 4}
-.chart-card.span-6{grid-column:span 6}
-.chart-card.span-8{grid-column:span 8}
-.chart-card.span-12{grid-column:span 12}
-@media(max-width:1100px){.chart-card,.chart-card.span-4,.chart-card.span-8,.chart-card.span-12{grid-column:span 6}}
-@media(max-width:760px){.chart-card,.chart-card.span-4,.chart-card.span-6,.chart-card.span-8,.chart-card.span-12{grid-column:span 1}}
-.chart-head{padding:15px 18px 0}
-.chart-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;letter-spacing:-.01em;display:flex;align-items:center;justify-content:space-between;gap:9px}
-.chart-kind{font-size:8px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.09em;color:var(--text3);border:1px solid var(--border);padding:2px 6px;border-radius:4px;flex-shrink:0;font-weight:500}
-.chart-subtitle{font-size:11.5px;color:var(--text2);margin-bottom:10px;line-height:1.55;font-family:'Newsreader',serif;font-style:italic}
-.chart-wrap{height:270px;min-height:270px;flex:1;padding:0 8px 12px}
-.chart-wrap.tall{height:330px;min-height:330px}
-.chart-wrap.xtall{height:400px;min-height:400px}
+/* ── Power BI style dashboard ─────────────────────────────────── */
+.kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
+.kpi{background:var(--card);border:1px solid var(--border);border-top:2px solid var(--accent);border-radius:8px;padding:11px 13px;min-width:0}
+.kpi-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text3);margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi-value{font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--text);letter-spacing:-.02em;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi-delta{font-size:10px;font-family:'JetBrains Mono',monospace;margin-top:4px;display:flex;align-items:center;gap:3px}
+.kpi-bench{font-size:9px;color:var(--text3);margin-top:3px}
+
+.bi-layout{display:grid;grid-template-columns:1fr 208px;gap:12px;align-items:start}
+.bi-canvas{min-width:0}
+.bi-rail{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;position:sticky;top:68px;max-height:calc(100vh - 90px);overflow-y:auto}
+.rail-head{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--accent);padding-bottom:9px;border-bottom:1px solid var(--border);margin-bottom:10px}
+.rail-head svg{width:12px;height:12px;stroke:var(--accent);fill:none;stroke-width:2;flex-shrink:0}
+.rail-head span{flex:1}
+.rail-reset{background:none;border:1px solid var(--border);color:var(--text3);font-size:8px;text-transform:uppercase;letter-spacing:.06em;padding:2px 6px;border-radius:4px;cursor:pointer;font-family:inherit;font-weight:600}
+.rail-reset:hover{border-color:var(--accent);color:var(--accent)}
+.rail-count{font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--green);margin-bottom:11px}
+.rail-body{display:flex;flex-direction:column;gap:13px}
+.rail-body .slicer-group{min-width:0}
+.rail-body .slicer-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:4px}
+.rail-body .slicer-select{width:100%;font-size:11px;padding:6px 8px}
+.rail-body .slicer-range{display:flex;align-items:center;gap:4px}
+.rail-body .slicer-num{width:100%;min-width:0;font-size:11px;padding:6px 6px}
+
+/* Compact chart tiles, 3 across like Power BI */
+.charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:11px;margin-bottom:14px}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:11px 13px;overflow:hidden;transition:border-color .18s;display:flex;flex-direction:column;min-width:0}
+.chart-card:hover{border-color:var(--border2)}
+.chart-card.wide{grid-column:1/-1}
+.chart-head{margin-bottom:6px}
+.chart-title{font-size:11px;font-weight:700;color:var(--accent);margin-bottom:2px;letter-spacing:.01em;display:flex;align-items:baseline;justify-content:space-between;gap:8px;text-transform:uppercase}
+.chart-title>span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chart-kind{font-size:7px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);padding:1px 5px;border:1px solid var(--border);border-radius:3px;flex-shrink:0;font-weight:500}
+.chart-subtitle{font-size:10px;color:var(--text3);line-height:1.4;font-family:'Newsreader',serif;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.chart-wrap{height:190px;min-height:190px;flex:1;min-width:0;margin-top:5px}
+.chart-wrap.tall{height:220px;min-height:220px}
+.chart-wrap.xtall{height:260px;min-height:260px}
+
+@media(max-width:1080px){
+  .bi-layout{grid-template-columns:1fr}
+  .bi-rail{position:static;max-height:none;order:-1}
+  .rail-body{flex-direction:row;flex-wrap:wrap;gap:10px}
+  .rail-body .slicer-group{flex:1;min-width:130px}
+}
+@media(max-width:700px){
+  .charts-grid{grid-template-columns:1fr}
+  .kpi-strip{grid-template-columns:repeat(2,1fr)}
+  .kpi-value{font-size:18px}
+}
 
 /* SECTION */
 .section-head{display:flex;align-items:center;gap:8px;margin-bottom:12px}
@@ -485,13 +515,24 @@ tr:hover td{background:rgba(255,255,255,.02)}
         <div class="qb-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
         <div><div class="qb-label">Dashboard built for your query</div><div class="qb-text" id="qbText"></div><div class="qb-focus" id="qbFocus"></div></div>
       </div>
-      <div class="slicers-bar" id="slicersBar">
-        <div class="slicers-title"><svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>Slicers — filter your data live</div>
-        <div class="slicers-row" id="slicersRow"></div>
+      <!-- KPI strip -->
+      <div class="kpi-strip" id="metricsRow"></div>
+
+      <!-- Main dashboard: chart canvas + slicer rail -->
+      <div class="bi-layout">
+        <div class="bi-canvas">
+          <div class="charts-grid" id="chartsGrid"></div>
+        </div>
+        <aside class="bi-rail" id="slicersBar">
+          <div class="rail-head">
+            <svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            <span>Filters</span>
+            <button class="rail-reset" onclick="resetSlicers()" title="Reset all filters">Reset</button>
+          </div>
+          <div class="rail-count" id="slicerCount"></div>
+          <div class="rail-body" id="slicersRow"></div>
+        </aside>
       </div>
-      <div class="metrics-row" id="metricsRow"></div>
-      <div class="section-head"><div class="section-title">Visualisations</div><div class="section-line"></div><div class="section-count" id="chartsCount"></div></div>
-      <div class="charts-grid" id="chartsGrid"></div>
       <div class="section-head"><div class="section-title">Data sample <span id="previewFilter" style="color:var(--accent);font-weight:400;text-transform:none;letter-spacing:0"></span></div><div class="section-line"></div></div>
       <div class="chart-card" id="dataTable"></div>
     </div>
@@ -1227,40 +1268,113 @@ function renderAll(res,finRes,data,q){
 function buildSlicers(data,query){
   if(!data||!data.length){document.getElementById('slicersBar').style.display='none';return;}
   const ks=Object.keys(data[0]);
-  const catCols=ks.filter(k=>typeof data[0][k]==='string');
   const numCols=ks.filter(k=>typeof data[0][k]==='number');
   const timeCols=ks.filter(k=>['month','week','quarter','period','year','term','season','date'].some(t=>k.toLowerCase().includes(t)));
+  // A time column must not also appear as a plain categorical, or the rail
+  // shows the same filter twice.
+  const catCols=ks.filter(k=>typeof data[0][k]==='string'&&!timeCols.includes(k));
   slicerState={};const row=document.getElementById('slicersRow');row.innerHTML='';
   if(timeCols.length){const col=timeCols[0];const vals=[...new Set(data.map(r=>r[col]))];slicerState[col]='all';const g=document.createElement('div');g.className='slicer-group';g.innerHTML=`<div class="slicer-label">${col.replace(/_/g,' ')}</div><select class="slicer-select" onchange="slicerState['${col}']=this.value;applySlicers()"><option value="all">All periods</option>${vals.map(v=>`<option value="${v}">${v}</option>`).join('')}</select>`;row.appendChild(g);}
-  catCols.slice(0,3).forEach(col=>{const vals=[...new Set(data.map(r=>r[col]))].sort();if(vals.length<2||vals.length>20)return;slicerState[col]='all';const g=document.createElement('div');g.className='slicer-group';g.innerHTML=`<div class="slicer-label">${col.replace(/_/g,' ')}</div><select class="slicer-select" onchange="slicerState['${col}']=this.value;applySlicers()"><option value="all">All ${col.replace(/_/g,' ')}s</option>${vals.map(v=>`<option value="${v}">${v}</option>`).join('')}</select>`;row.appendChild(g);});
+  catCols.slice(0,4).forEach(col=>{const vals=[...new Set(data.map(r=>r[col]))].sort();if(vals.length<2||vals.length>20)return;slicerState[col]='all';const g=document.createElement('div');g.className='slicer-group';g.innerHTML=`<div class="slicer-label">${col.replace(/_/g,' ')}</div><select class="slicer-select" onchange="slicerState['${col}']=this.value;applySlicers()"><option value="all">All ${col.replace(/_/g,' ')}s</option>${vals.map(v=>`<option value="${v}">${v}</option>`).join('')}</select>`;row.appendChild(g);});
   if(numCols.length){const col=numCols[0];const vals=data.map(r=>r[col]).filter(v=>typeof v==='number');const mn=Math.floor(Math.min(...vals)),mx=Math.ceil(Math.max(...vals));slicerState[col+'_min']=mn;slicerState[col+'_max']=mx;const g=document.createElement('div');g.className='slicer-group';g.innerHTML=`<div class="slicer-label">${col.replace(/_/g,' ')} range</div><div class="slicer-range"><input class="slicer-num" type="number" value="${mn}" onchange="slicerState['${col}_min']=+this.value;applySlicers()" oninput="slicerState['${col}_min']=+this.value;applySlicers()"><span class="slicer-dash">—</span><input class="slicer-num" type="number" value="${mx}" onchange="slicerState['${col}_max']=+this.value;applySlicers()" oninput="slicerState['${col}_max']=+this.value;applySlicers()"></div>`;row.appendChild(g);}
   const c=document.createElement('div');c.className='slicer-count';c.id='slicerCount';c.textContent=data.length+' rows';row.appendChild(c);
-  const live=document.createElement('div');live.style.cssText='font-size:9px;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.08em;align-self:flex-end;padding-bottom:9px;display:flex;align-items:center;gap:5px';live.innerHTML='<span style="width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);display:inline-block"></span>Live filtering';row.appendChild(live);
-  const rst=document.createElement('button');rst.className='reset-btn';rst.textContent='Reset';rst.onclick=resetSlicers;row.appendChild(rst);
   document.getElementById('slicersBar').style.display='block';
 }
-function applySlicers(){if(!rawData)return;filteredData=rawData.filter(row=>{for(const[k,v]of Object.entries(slicerState)){if(k.endsWith('_min')){const c=k.replace('_min','');if(row[c]!==undefined&&row[c]<v)return false;}else if(k.endsWith('_max')){const c=k.replace('_max','');if(row[c]!==undefined&&row[c]>v)return false;}else if(v!=='all'){if(row[k]!==undefined&&String(row[k])!==String(v))return false;}}return true;});const c=document.getElementById('slicerCount');if(c)c.textContent=filteredData.length+' / '+rawData.length+' rows';document.getElementById('previewFilter').textContent=filteredData.length<rawData.length?` — ${filteredData.length} filtered rows`:'';rebuildCharts(filteredData);renderPreview(filteredData.slice(0,8));renderMetricsFromData(filteredData);}
-function resetSlicers(){filteredData=[...rawData];document.querySelectorAll('.slicer-select').forEach(s=>s.value='all');const inputs=document.querySelectorAll('.slicer-num');const numCols=Object.keys(rawData[0]).filter(k=>typeof rawData[0][k]==='number');if(numCols.length&&inputs.length>=2){const vals=rawData.map(r=>r[numCols[0]]).filter(v=>typeof v==='number');inputs[0].value=Math.floor(Math.min(...vals));inputs[1].value=Math.ceil(Math.max(...vals));}const c=document.getElementById('slicerCount');if(c)c.textContent=rawData.length+' rows';document.getElementById('previewFilter').textContent='';rebuildCharts(filteredData);renderPreview(filteredData.slice(0,8));renderMetricsFromData(filteredData);toast('Filters reset','ok');}
-function renderMetricsFromData(data){if(!data||!data.length)return;const nk=Object.keys(data[0]).filter(k=>typeof data[0][k]==='number');const metrics=nk.slice(0,4).map(k=>{const vs=data.map(r=>r[k]).filter(v=>typeof v==='number');const mean=vs.reduce((a,b)=>a+b,0)/vs.length;const last=vs[vs.length-1],prev=vs[vs.length-2]||last;const cp=prev?((last-prev)/prev*100).toFixed(1):0;return{label:k.replace(/_/g,' '),value:mean>10000?(mean/1000).toFixed(1)+'K':mean.toFixed(1),change_pct:parseFloat(cp),trend:cp>0?'up':cp<0?'down':'flat'};});renderMetrics(metrics);}
+function applySlicers(){if(!rawData)return;filteredData=rawData.filter(row=>{for(const[k,v]of Object.entries(slicerState)){if(k.endsWith('_min')){const c=k.replace('_min','');if(row[c]!==undefined&&row[c]<v)return false;}else if(k.endsWith('_max')){const c=k.replace('_max','');if(row[c]!==undefined&&row[c]>v)return false;}else if(v!=='all'){if(row[k]!==undefined&&String(row[k])!==String(v))return false;}}return true;});const c=document.getElementById('slicerCount');if(c)c.textContent=filteredData.length===rawData.length?rawData.length+' rows \u00b7 live':filteredData.length+' of '+rawData.length+' rows';document.getElementById('previewFilter').textContent=filteredData.length<rawData.length?` — ${filteredData.length} filtered rows`:'';rebuildCharts(filteredData);renderPreview(filteredData.slice(0,8));renderMetricsFromData(filteredData);}
+function resetSlicers(){filteredData=[...rawData];document.querySelectorAll('.slicer-select').forEach(s=>s.value='all');const inputs=document.querySelectorAll('.slicer-num');const numCols=Object.keys(rawData[0]).filter(k=>typeof rawData[0][k]==='number');if(numCols.length&&inputs.length>=2){const vals=rawData.map(r=>r[numCols[0]]).filter(v=>typeof v==='number');inputs[0].value=Math.floor(Math.min(...vals));inputs[1].value=Math.ceil(Math.max(...vals));}const c=document.getElementById('slicerCount');if(c)c.textContent=rawData.length+' rows \u00b7 live';document.getElementById('previewFilter').textContent='';rebuildCharts(filteredData);renderPreview(filteredData.slice(0,8));renderMetricsFromData(filteredData);toast('Filters reset','ok');}
 
-function renderMetrics(ms){document.getElementById('metricsRow').innerHTML=ms.map(m=>{const tc=m.trend==='up'?'up':m.trend==='down'?'dn':'nt';const arrow=m.trend==='up'?'↑ ':m.trend==='down'?'↓ ':'';const ch=m.change_pct!=null?`<div class="metric-change ${tc}">${arrow}${Math.abs(m.change_pct)}% vs previous</div>`:'';return`<div class="metric-card"><div class="metric-label">${m.label}</div><div class="metric-value">${m.value}</div>${ch}</div>`;}).join('');}
+
+function renderMetricsFromData(data){
+  if(!data||!data.length){document.getElementById('metricsRow').innerHTML='';return;}
+  const keys=Object.keys(data[0]);
+  const nk=keys.filter(k=>data.some(r=>typeof r[k]==='number'));
+  const ck=keys.filter(k=>!nk.includes(k));
+  const ms=[];
+
+  // Record count first, like "Total Patients"
+  ms.push({label:'Total Records',value:data.length.toLocaleString()});
+
+  // Sum the money-like columns, average the rate-like ones
+  const isRate=k=>/rate|pct|percent|ratio|score|time|age|days|hours|margin|avg|average/i.test(k);
+  nk.slice(0,4).forEach(k=>{
+    const vs=data.map(r=>r[k]).filter(v=>typeof v==='number');
+    if(!vs.length)return;
+    const last=vs[vs.length-1], prev=vs.length>1?vs[vs.length-2]:null;
+    const cp=prev?((last-prev)/Math.abs(prev)*100):null;
+    if(isRate(k)){
+      const mean=vs.reduce((a,b)=>a+b,0)/vs.length;
+      ms.push({label:'Avg '+k.replace(/_/g,' '),value:fmtNum(mean),
+        change_pct:cp!=null?+cp.toFixed(1):null,trend:cp>0?'up':cp<0?'down':'flat'});
+    }else{
+      const total=vs.reduce((a,b)=>a+b,0);
+      ms.push({label:'Total '+k.replace(/_/g,' '),value:fmtNum(total),
+        change_pct:cp!=null?+cp.toFixed(1):null,trend:cp>0?'up':cp<0?'down':'flat'});
+    }
+  });
+
+  // Distinct count of the main categorical, like "Number of Doctors"
+  const isTimeCol=k=>/^(date|day|month|week|quarter|year|period|time|timestamp)$/i.test(k)
+    ||/_date$|_time$|^date_|^time_/i.test(k);
+  const cat=ck.find(k=>{
+    if(isTimeCol(k))return false;
+    const u=new Set(data.map(r=>r[k])).size;
+    return u>1&&u<=20;
+  });
+  if(cat&&ms.length<6)
+    ms.push({label:cat.replace(/_/g,' ')+'s',value:new Set(data.map(r=>r[cat])).size});
+
+  renderMetrics(ms.slice(0,6));
+}
+
+function renderMetrics(ms){
+  document.getElementById('metricsRow').innerHTML=ms.map(m=>{
+    const tc=m.trend==='up'?'up':m.trend==='down'?'dn':'nt';
+    const col=m.trend==='up'?'var(--green)':m.trend==='down'?'var(--red)':'var(--text3)';
+    const arrow=m.trend==='up'?'\u2191':m.trend==='down'?'\u2193':'\u2192';
+    const ch=m.change_pct!=null
+      ?`<div class="kpi-delta" style="color:${col}">${arrow} ${Math.abs(m.change_pct)}%</div>`:'';
+    const bench=m.benchmark?`<div class="kpi-bench">${m.benchmark}</div>`:'';
+    return `<div class="kpi"><div class="kpi-label">${m.label}</div>`+
+           `<div class="kpi-value">${m.value}</div>${ch}${bench}</div>`;
+  }).join('');
+}
 
 const COLORS=['#00c8be','#3d7ef5','#f0a020','#f04060','#00d888','#8b5cf6','#ec4899','#14b8a6'];
-function getLayout(h=250){return{
+function getLayout(h=190){return{
   paper_bgcolor:'transparent',plot_bgcolor:'transparent',
-  font:{color:'#7d93b3',family:'Inter Tight',size:11},
-  margin:{l:52,r:18,t:12,b:44},
+  font:{color:'#7d93b3',family:'Inter Tight',size:10},
+  margin:{l:44,r:12,t:8,b:34},
   height:h,
   hoverlabel:{bgcolor:'#141d33',bordercolor:'rgba(0,200,190,.35)',
     font:{color:'#e8f0fa',family:'Inter Tight',size:11},align:'left'},
-  legend:{font:{color:'#7d93b3',size:10},bgcolor:'rgba(0,0,0,0)'},
+  legend:{font:{color:'#7d93b3',size:9},bgcolor:'rgba(0,0,0,0)'},
   xaxis:{gridcolor:'rgba(255,255,255,0.035)',zerolinecolor:'rgba(255,255,255,0.07)',
-    linecolor:'rgba(255,255,255,0.07)',tickfont:{size:10},automargin:true},
+    linecolor:'rgba(255,255,255,0.07)',tickfont:{size:9},automargin:true},
   yaxis:{gridcolor:'rgba(255,255,255,0.035)',zerolinecolor:'rgba(255,255,255,0.07)',
     linecolor:'rgba(255,255,255,0.07)',tickfont:{size:10},automargin:true},
 };}
 const CFG={responsive:true,displayModeBar:false,doubleClick:'reset'};
-function renderCharts(apiCharts,data,intents,query){const g=document.getElementById('chartsGrid');g.innerHTML='';apiCharts.forEach((c,i)=>{if(!c.data)return;const d=document.createElement('div');d.className='chart-card';d.innerHTML=`<div class="chart-title">${c.title}</div>${c.description?`<div class="chart-subtitle">${c.description}</div>`:''}<div class="chart-wrap" id="ac${i}"></div>`;g.appendChild(d);try{const fig=typeof c.data==='string'?JSON.parse(c.data):c.data;Plotly.newPlot('ac'+i,fig.data||[],Object.assign({},fig.layout||{},getLayout()),CFG);}catch(e){console.warn(e);}});buildQueryAwareCharts(data,g,apiCharts.length,intents,query);document.getElementById('chartsCount').textContent=(apiCharts.length+4)+' charts';}
+function renderCharts(apiCharts,data,intents,query){
+  const g=document.getElementById('chartsGrid');
+  g.innerHTML='';
+  apiCharts.forEach((c,i)=>{
+    if(!c.data)return;
+    const d=document.createElement('div');
+    d.className='chart-card';
+    d.innerHTML=
+      `<div class="chart-head">`+
+        `<div class="chart-title"><span>${c.title}</span><span class="chart-kind">server</span></div>`+
+        (c.description?`<div class="chart-subtitle">${c.description}</div>`:'')+
+      `</div>`+
+      `<div class="chart-wrap" id="ac${i}"></div>`;
+    g.appendChild(d);
+    try{
+      const fig=typeof c.data==='string'?JSON.parse(c.data):c.data;
+      Plotly.newPlot('ac'+i,fig.data||[],Object.assign({},fig.layout||{},getLayout()),CFG);
+    }catch(e){console.warn('Server chart failed:',c.title,e);}
+  });
+  buildQueryAwareCharts(data,g,apiCharts.length,intents,query);
+}
 function rebuildCharts(data){const g=document.getElementById('chartsGrid');g.innerHTML='';buildQueryAwareCharts(data,g,0,detectQueryIntent(lastQuery),lastQuery);}
 // ── PROFESSIONAL CHART ENGINE ──────────────────────────────────────────────
 // Selects chart types based on what the user actually asked for, and on the
@@ -1339,7 +1453,7 @@ function chartTrend(data,P,add,idx){
     marker:{size:6,color:PALETTE[i],line:{width:1.5,color:'rgba(255,255,255,.3)'}},
     hovertemplate:'%{x}<br>'+pretty(k)+': %{y:,.0f}<extra></extra>',
   }));
-  add('Trend Over Time','Each line is one metric. Steeper slope means faster change.',`c${idx}`,tr,null,null,{span:'span-12',kind:'line'});
+  add('Trend Over Time','Each line is one metric. Steeper slope means faster change.',`c${idx}`,tr,null,null,{wide:true,kind:'line'});
   return idx+1;
 }
 
@@ -1375,19 +1489,19 @@ function chartPie(data,P,add,idx,metric){
       pull:top.map((_,i)=>i===0?0.04:0),
     }],
     {
-      ...getLayout(310),
+      ...getLayout(220),
       showlegend:true,
       legend:{orientation:'h',y:-0.08,x:0.5,xanchor:'center',
         font:{color:'#8aa0c0',size:10,family:'Inter Tight'},
         itemsizing:'constant',bgcolor:'rgba(0,0,0,0)'},
-      margin:{l:10,r:10,t:10,b:52},
+      margin:{l:6,r:6,t:6,b:40},
       annotations:[{
         text:`<b style="font-size:21px">${fmtNum(total)}</b><br><span style="font-size:9px;letter-spacing:1px">TOTAL</span>`,
         showarrow:false,font:{color:'#e8f0fa',family:'Inter Tight'},
         x:0.5,y:0.5,xanchor:'center',yanchor:'middle',
       }],
     },
-    'tall',{span:'span-4',kind:'donut'}
+    'tall',{kind:'donut'}
   );
   return idx+1;
 }
@@ -1400,7 +1514,7 @@ function chartRanking(data,P,add,idx,metric){
   const max=Math.max(...rows.map(r=>r[1]));
   const top=rows[rows.length-1];
   const cls=rows.length>6?'xtall':rows.length>4?'tall':'';
-  const h=rows.length>6?380:rows.length>4?310:250;
+  const h=rows.length>6?250:rows.length>4?215:190;
   add(
     `${pretty(cat.name)} Ranked by ${pretty(metric)}`,
     `${pretty(top[0])} leads with ${fmtNum(top[1])}. Bar length is proportional to value.`,
@@ -1419,7 +1533,7 @@ function chartRanking(data,P,add,idx,metric){
      xaxis:{gridcolor:'rgba(255,255,255,0.04)',range:[0,max*1.22],
        zerolinecolor:'rgba(255,255,255,0.08)'},
      yaxis:{gridcolor:'rgba(0,0,0,0)',tickfont:{size:11}}},
-    cls,{span:'span-8',kind:'ranked bar'}
+    cls,{kind:'ranked bar'}
   );
   return idx+1;
 }
@@ -1446,8 +1560,8 @@ function chartWaterfall(data,P,add,idx,metric){
       textposition:'outside',textfont:{color:'#8aa0c0',size:10,family:'JetBrains Mono'},
       hovertemplate:'%{x}<br>Change: %{y:,.0f}<extra></extra>',
     }],
-    {...getLayout(300),margin:{l:56,r:18,t:26,b:56}},
-    'tall',{span:'span-12',kind:'waterfall'}
+    {...getLayout(220),margin:{l:46,r:12,t:14,b:44}},
+    'tall',{wide:true,kind:'waterfall'}
   );
   return idx+1;
 }
@@ -1470,7 +1584,7 @@ function chartAnomaly(data,P,add,idx,metric){
         line:{color:'rgba(255,255,255,.08)',width:1}},
       hovertemplate:'%{x}<br>%{y:,.0f}<extra></extra>',
     }],
-    {...getLayout(270),shapes:[
+    {...getLayout(190),shapes:[
       {type:'line',x0:0,x1:1,xref:'paper',y0:mean,y1:mean,
        line:{color:'rgba(140,160,190,.45)',dash:'dot',width:1}},
       {type:'line',x0:0,x1:1,xref:'paper',y0:mean+2.5*std,y1:mean+2.5*std,
@@ -1481,7 +1595,7 @@ function chartAnomaly(data,P,add,idx,metric){
       {x:1,xref:'paper',y:mean+2.5*std,yanchor:'bottom',text:'2.5σ',showarrow:false,
        font:{size:9,color:'rgba(240,64,96,.7)',family:'JetBrains Mono'}},
     ]},
-    'tall',{span:'span-6',kind:'anomaly'}
+    'tall',{kind:'anomaly'}
   );
   return idx+1;
 }
@@ -1502,12 +1616,12 @@ function chartGrouped(data,P,add,idx,metric){
       text:[fmtNum(v)],textposition:'outside',
       textfont:{color:'#8aa0c0',size:10,family:'JetBrains Mono'},
       hovertemplate:'%{x}<br>'+pretty(metric)+': %{y:,.0f}<extra></extra>'})),
-    {...getLayout(270),showlegend:false,shapes:[
+    {...getLayout(190),showlegend:false,shapes:[
       {type:'line',x0:0,x1:1,xref:'paper',y0:overall,y1:overall,
        line:{color:'rgba(240,160,32,.5)',dash:'dash',width:1}}],
      annotations:[{x:1,xref:'paper',y:overall,yanchor:'bottom',text:'overall mean',
        showarrow:false,font:{size:9,color:'rgba(240,160,32,.75)',family:'JetBrains Mono'}}]},
-    'tall',{span:'span-6',kind:'grouped bar'}
+    'tall',{kind:'grouped bar'}
   );
   return idx+1;
 }
@@ -1537,8 +1651,8 @@ function chartCorrelation(data,P,add,idx){
       textfont:{size:10,color:'#e8f0fa',family:'JetBrains Mono'},
       colorbar:{tickfont:{color:'#6a85aa',size:9},thickness:9,len:0.8},
       hovertemplate:'%{y} vs %{x}<br>r = %{z}<extra></extra>'}],
-    {...getLayout(cols.length>4?310:270),margin:{l:100,r:16,t:10,b:84}},
-    'tall',{span:'span-6',kind:'heatmap'}
+    {...getLayout(cols.length>4?230:200),margin:{l:82,r:10,t:6,b:62}},
+    'tall',{kind:'heatmap'}
   );
   return idx+1;
 }
@@ -1555,8 +1669,8 @@ function chartDistribution(data,P,add,idx){
       fillcolor:PALETTE[i]+'22',
       hovertemplate:pretty(k)+'<br>%{y:,.0f}<extra></extra>',
     })),
-    {...getLayout(270),showlegend:false},
-    'tall',{span:'span-6',kind:'box plot'}
+    {...getLayout(190),showlegend:false},
+    'tall',{kind:'box plot'}
   );
   return idx+1;
 }
@@ -1581,7 +1695,7 @@ function chartScatter(data,P,add,idx){
     size?`Bubble size and colour show ${pretty(size)}. A diagonal pattern means the two metrics move together.`
         :'A diagonal pattern means the two metrics move together.',
     `c${idx}`,[tr],
-    null,null,{span:'span-6',kind:'bubble'}
+    null,null,{kind:'bubble'}
   );
   return idx+1;
 }
@@ -1601,8 +1715,8 @@ function chartTreemap(data,P,add,idx,metric){
       textinfo:'label+value+percent root',
       textfont:{color:'#0b1221',size:12,family:'Inter Tight'},
       hovertemplate:'%{label}<br>%{value:,.0f} (%{percentRoot})<extra></extra>'}],
-    {...getLayout(310),margin:{l:4,r:4,t:4,b:4}},
-    'tall',{span:'span-6',kind:'treemap'}
+    {...getLayout(220),margin:{l:4,r:4,t:4,b:4}},
+    'tall',{kind:'treemap'}
   );
   return idx+1;
 }
@@ -1619,8 +1733,8 @@ function chartFunnel(data,P,add,idx,metric){
       textinfo:'value+percent initial',
       textfont:{color:'#e8f0fa',size:11,family:'Inter Tight'},
       hovertemplate:'%{y}<br>%{x:,.0f}<extra></extra>'}],
-    {...getLayout(300),margin:{l:100,r:44,t:12,b:28}},
-    'tall',{span:'span-6',kind:'funnel'}
+    {...getLayout(220),margin:{l:100,r:44,t:12,b:28}},
+    'tall',{kind:'funnel'}
   );
   return idx+1;
 }
@@ -1647,8 +1761,8 @@ function chartGauge(data,P,add,idx,metric){
         steps:[{range:[0,max*0.5],color:'rgba(255,255,255,.02)'},
                {range:[max*0.5,max*0.8],color:'rgba(255,255,255,.04)'}],
         threshold:{line:{color:'#f0a020',width:2},thickness:0.8,value:prev}}}],
-    {...getLayout(250),margin:{l:26,r:26,t:34,b:14}},
-    null,{span:'span-4',kind:'kpi gauge'}
+    {...getLayout(190),margin:{l:16,r:16,t:24,b:8}},
+    null,{kind:'kpi gauge'}
   );
   return idx+1;
 }
@@ -1664,7 +1778,7 @@ function buildQueryAwareCharts(data,g,off,intents,query){
   const add=(t,s,id,tr,ly,cls,opts)=>{
     opts=opts||{};
     const d=document.createElement('div');
-    d.className='chart-card '+(opts.span||'span-6');
+    d.className='chart-card'+(opts.wide?' wide':'');
     d.innerHTML=
       `<div class="chart-head">`+
         `<div class="chart-title"><span>${t}</span>`+
@@ -1974,7 +2088,7 @@ function renderForecast(res,data){
       {x:allX,y:histY,type:'scatter',mode:'lines+markers',name:'Actual',line:{color:'#00c8be',width:2.5},marker:{size:6}},
       {x:allX,y:fcY,type:'scatter',mode:'lines+markers',name:'Forecast',line:{color:'#f0a020',width:2.5,dash:'dash'},marker:{size:7,symbol:'diamond'}},
     ];
-    try{Plotly.newPlot('fc'+i,traces,{...getLayout(250),showlegend:true,legend:{orientation:'h',y:-0.2,font:{color:'#6a85aa',size:10}}},CFG);}catch(e){console.warn(e);}
+    try{Plotly.newPlot('fc'+i,traces,{...getLayout(190),showlegend:true,legend:{orientation:'h',y:-0.2,font:{color:'#6a85aa',size:10}}},CFG);}catch(e){console.warn(e);}
   });
 }
 
