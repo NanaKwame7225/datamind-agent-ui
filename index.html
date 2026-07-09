@@ -366,10 +366,28 @@ tr:hover td{background:rgba(255,255,255,.02)}
       <div class="upload-zone" id="upZone" onclick="document.getElementById('fileInput').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="onDrop(event)">
         <div class="uz-title">Click or drag your file here</div>
         <div class="uz-sub">Or use built-in sample data for your industry</div>
-        <div class="uz-fmt">CSV · Excel · JSON · Parquet</div>
+        <div class="uz-fmt">CSV · Excel · PDF · JSON · Parquet</div>
       </div>
-      <input type="file" id="fileInput" accept=".csv,.xlsx,.xls,.json,.parquet" onchange="onFileSelect(event)">
+      <input type="file" id="fileInput" accept=".csv,.tsv,.xlsx,.xlsm,.xls,.json,.parquet,.pdf" onchange="onFileSelect(event)">
       <div id="fpill" style="display:none" class="fpill"><span id="fname">file.csv</span><span class="fpill-x" onclick="clearFile()">✕</span></div>
+
+      <!-- Excel sheet picker -->
+      <div id="sheetPicker" style="display:none;margin-top:10px">
+        <div class="slicer-label" style="margin-bottom:5px">Workbook has multiple sheets — choose one</div>
+        <div id="sheetTabs" style="display:flex;flex-wrap:wrap;gap:5px"></div>
+      </div>
+
+      <!-- PDF table picker -->
+      <div id="pdfInfo" style="display:none;margin-top:10px;padding:10px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--text2)"></div>
+
+      <!-- Data preview -->
+      <div id="filePreview" style="display:none;margin-top:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <div class="slicer-label" id="previewMeta">Preview</div>
+          <button class="reset-btn" style="padding:4px 10px;font-size:10px" onclick="togglePreview(this)">Hide</button>
+        </div>
+        <div id="filePreviewTable" style="max-height:220px;overflow:auto"></div>
+      </div>
     </div>
 
     <div class="analyse-card">
@@ -603,10 +621,141 @@ function setTheme(n,el){document.body.className='theme-'+n;document.querySelecto
 function selInd(btn){document.querySelectorAll('.ind-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');industry=btn.dataset.v;updatePrompts();}
 function updatePrompts(){const ps=PROMPTS[industry]||PROMPTS.general;document.getElementById('qprompts').innerHTML=ps.map(p=>`<button class="qp" onclick="setQ('${p.replace(/'/g,"\\'")}')">${p}</button>`).join('');}
 function setQ(t){document.getElementById('queryInput').value=t;}
-async function onFileSelect(e){const f=e.target.files[0];if(f)await parseFile(f);}
-function onDrop(e){e.preventDefault();document.getElementById('upZone').classList.remove('drag');parseFile(e.dataTransfer.files[0]);}
-async function parseFile(f){document.getElementById('fname').textContent=f.name;document.getElementById('fpill').style.display='flex';if(f.name.toLowerCase().endsWith('.csv')){const txt=await f.text();const rows=txt.trim().split('\n');const hdrs=rows[0].split(',').map(h=>h.trim().replace(/^"|"$/g,''));uploadedData=rows.slice(1).map(r=>{const vs=r.split(',').map(v=>v.trim().replace(/^"|"$/g,''));const o={};hdrs.forEach((h,i)=>{const n=parseFloat(vs[i]);o[h]=isNaN(n)?vs[i]:n;});return o;}).filter(r=>Object.values(r).some(v=>v!==''));toast(f.name+' loaded — '+uploadedData.length+' rows','ok');}else toast('File ready','ok');}
-function clearFile(){uploadedData=null;document.getElementById('fpill').style.display='none';document.getElementById('fileInput').value='';}
+let currentFile=null, currentSheets=[], previewVisible=true;
+
+async function onFileSelect(e){const f=e.target.files[0];if(f)await handleFile(f);}
+function onDrop(e){e.preventDefault();document.getElementById('upZone').classList.remove('drag');const f=e.dataTransfer.files[0];if(f)handleFile(f);}
+
+function fileExt(name){return (name.split('.').pop()||'').toLowerCase();}
+
+async function handleFile(f){
+  currentFile=f;
+  document.getElementById('fname').textContent=f.name;
+  document.getElementById('fpill').style.display='flex';
+  document.getElementById('sheetPicker').style.display='none';
+  document.getElementById('pdfInfo').style.display='none';
+  document.getElementById('filePreview').style.display='none';
+
+  const ext=fileExt(f.name);
+  const isExcel=['xlsx','xlsm','xls'].includes(ext);
+  const isPdf=ext==='pdf';
+
+  toast('Reading '+f.name+'...','ok');
+
+  // Excel and PDF need backend inspection first
+  if(isExcel||isPdf){
+    try{
+      const fd=new FormData(); fd.append('file',f);
+      const r=await fetch(getUrl()+'/api/v1/upload/inspect',{method:'POST',body:fd});
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      const info=await r.json();
+      if(!info.success)throw new Error(info.error||'Could not read file');
+
+      if(info.type==='excel'){
+        currentSheets=info.sheets||[];
+        if(currentSheets.length>1){
+          renderSheetTabs(currentSheets);
+          document.getElementById('sheetPicker').style.display='block';
+        }
+        const biggest=currentSheets.reduce((a,b)=>b.rows>a.rows?b:a,currentSheets[0]);
+        await loadSheet(biggest.name);
+        return;
+      }
+      if(info.type==='pdf'){
+        document.getElementById('pdfInfo').style.display='block';
+        document.getElementById('pdfInfo').innerHTML=
+          `<strong style="color:var(--accent)">PDF scanned:</strong> ${info.pages} page${info.pages!==1?'s':''}, `+
+          `${info.tables_found} table${info.tables_found!==1?'s':''} detected. `+
+          (info.tables_found?'Extracting the largest table.':'No tables found — try exporting to CSV instead.');
+        if(!info.tables_found){toast('No tables found in this PDF','err');return;}
+        await parseViaBackend(f);
+        return;
+      }
+    }catch(err){
+      toast('Could not read file — '+err.message.substring(0,30),'err');
+      return;
+    }
+  }
+
+  // CSV/JSON/Parquet — send to backend for robust parsing
+  await parseViaBackend(f);
+}
+
+async function parseViaBackend(f, sheetName){
+  try{
+    const fd=new FormData(); fd.append('file',f);
+    if(sheetName)fd.append('sheet_name',sheetName);
+    const r=await fetch(getUrl()+'/api/v1/upload/parse',{method:'POST',body:fd});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const res=await r.json();
+    if(!res.success){
+      toast(res.error||'Parse failed','err');
+      if(res.hint)document.getElementById('pdfInfo').innerHTML+=`<div style="margin-top:6px;color:var(--warn)">${res.hint}</div>`;
+      return;
+    }
+    uploadedData=res.records;
+    showPreview(res);
+    toast(f.name+' loaded — '+res.row_count+' rows, '+res.col_count+' columns','ok');
+  }catch(err){
+    // Fallback: client-side CSV parse so the app still works if the backend is down
+    if(fileExt(f.name)==='csv'){
+      const txt=await f.text();
+      const rows=txt.trim().split('\n');
+      const hdrs=rows[0].split(',').map(h=>h.trim().replace(/^"|"$/g,''));
+      uploadedData=rows.slice(1).map(r=>{const vs=r.split(',').map(v=>v.trim().replace(/^"|"$/g,''));const o={};hdrs.forEach((h,i)=>{const n=parseFloat(vs[i]);o[h]=isNaN(n)?vs[i]:n;});return o;}).filter(r=>Object.values(r).some(v=>v!==''));
+      showPreview({records:uploadedData,columns:hdrs,row_count:uploadedData.length,col_count:hdrs.length,source_format:'csv (local)'});
+      toast(f.name+' loaded locally — '+uploadedData.length+' rows','ok');
+    }else{
+      toast('Parse failed — '+err.message.substring(0,30),'err');
+    }
+  }
+}
+
+function renderSheetTabs(sheets){
+  document.getElementById('sheetTabs').innerHTML=sheets.map((s,i)=>
+    `<button class="sql-sample" data-sheet="${s.name}" onclick="loadSheet('${s.name.replace(/'/g,"\\'")}',this)">${s.name} <span style="opacity:.6">(${s.rows})</span></button>`
+  ).join('');
+}
+
+async function loadSheet(name,btn){
+  if(!currentFile)return;
+  document.querySelectorAll('#sheetTabs .sql-sample').forEach(b=>{b.style.borderColor='var(--border)';b.style.color='var(--text2)';});
+  const target=btn||document.querySelector(`#sheetTabs [data-sheet="${CSS.escape(name)}"]`);
+  if(target){target.style.borderColor='var(--accent)';target.style.color='var(--accent)';}
+  await parseViaBackend(currentFile,name);
+}
+
+function showPreview(res){
+  const rows=(res.records||[]).slice(0,8);
+  if(!rows.length){document.getElementById('filePreview').style.display='none';return;}
+  document.getElementById('filePreview').style.display='block';
+  previewVisible=true;
+  const fmt=res.source_format||'file';
+  const sheet=res.sheet_used?` · sheet "${res.sheet_used}"`:'';
+  const tbl=res.table_used?` · table on page ${res.table_used.page}`:'';
+  document.getElementById('previewMeta').textContent=
+    `Preview — ${res.row_count} rows × ${res.col_count} columns · ${fmt}${sheet}${tbl}`;
+  const cols=res.columns||Object.keys(rows[0]);
+  document.getElementById('filePreviewTable').innerHTML=
+    `<div class="table-wrap"><table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`+
+    rows.map(r=>`<tr>${cols.map(c=>`<td>${r[c]!=null?r[c]:''}</td>`).join('')}</tr>`).join('')+
+    `</tbody></table></div>`;
+}
+
+function togglePreview(btn){
+  previewVisible=!previewVisible;
+  document.getElementById('filePreviewTable').style.display=previewVisible?'block':'none';
+  if(btn)btn.textContent=previewVisible?'Hide':'Show';
+}
+
+function clearFile(){
+  uploadedData=null;currentFile=null;currentSheets=[];
+  document.getElementById('fpill').style.display='none';
+  document.getElementById('fileInput').value='';
+  document.getElementById('sheetPicker').style.display='none';
+  document.getElementById('pdfInfo').style.display='none';
+  document.getElementById('filePreview').style.display='none';
+}
 
 async function runAnalysis(){
   const q=document.getElementById('queryInput').value.trim();
