@@ -152,12 +152,25 @@ body.theme-light .slicers-bar{box-shadow:0 8px 28px rgba(0,0,0,.12)}
 .up{color:var(--green)}.dn{color:var(--red)}.nt{color:var(--text2)}
 
 /* CHARTS */
-.charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:13px;margin-bottom:16px}
-.chart-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px;overflow:hidden;transition:border-color .2s}
-.chart-card:hover{border-color:var(--border2)}
-.chart-title{font-size:12px;font-weight:700;color:var(--text);margin-bottom:3px}
-.chart-subtitle{font-size:11px;color:var(--text2);margin-bottom:9px;line-height:1.4;font-family:'Newsreader',serif}
-.chart-wrap{height:250px}
+.charts-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;margin-bottom:20px}
+@media(max-width:1100px){.charts-grid{grid-template-columns:repeat(6,1fr)}}
+@media(max-width:760px){.charts-grid{grid-template-columns:1fr}}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:0;overflow:hidden;transition:border-color .22s,transform .22s,box-shadow .22s;display:flex;flex-direction:column;position:relative;grid-column:span 6}
+.chart-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),transparent 65%);opacity:.55}
+.chart-card:hover{border-color:var(--border2);transform:translateY(-1px);box-shadow:0 8px 26px rgba(0,0,0,.28)}
+.chart-card.span-4{grid-column:span 4}
+.chart-card.span-6{grid-column:span 6}
+.chart-card.span-8{grid-column:span 8}
+.chart-card.span-12{grid-column:span 12}
+@media(max-width:1100px){.chart-card,.chart-card.span-4,.chart-card.span-8,.chart-card.span-12{grid-column:span 6}}
+@media(max-width:760px){.chart-card,.chart-card.span-4,.chart-card.span-6,.chart-card.span-8,.chart-card.span-12{grid-column:span 1}}
+.chart-head{padding:15px 18px 0}
+.chart-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;letter-spacing:-.01em;display:flex;align-items:center;justify-content:space-between;gap:9px}
+.chart-kind{font-size:8px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.09em;color:var(--text3);border:1px solid var(--border);padding:2px 6px;border-radius:4px;flex-shrink:0;font-weight:500}
+.chart-subtitle{font-size:11.5px;color:var(--text2);margin-bottom:10px;line-height:1.55;font-family:'Newsreader',serif;font-style:italic}
+.chart-wrap{height:270px;min-height:270px;flex:1;padding:0 8px 12px}
+.chart-wrap.tall{height:330px;min-height:330px}
+.chart-wrap.xtall{height:400px;min-height:400px}
 
 /* SECTION */
 .section-head{display:flex;align-items:center;gap:8px;margin-bottom:12px}
@@ -406,6 +419,16 @@ tr:hover td{background:rgba(255,255,255,.02)}
 
       <!-- PDF table picker -->
       <div id="pdfInfo" style="display:none;margin-top:10px;padding:10px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--text2)"></div>
+
+      <!-- Dataset summary — always shown after a successful parse -->
+      <div id="dsSummary" style="display:none;margin-top:12px;padding:13px 15px;background:linear-gradient(135deg,rgba(0,200,190,.05),rgba(61,126,245,.04));border:1px solid rgba(0,200,190,.22);border-radius:10px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--accent);fill:none;stroke-width:2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em">Dataset loaded</div>
+        </div>
+        <div id="dsStats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:10px"></div>
+        <div id="dsCols" style="margin-top:11px;font-size:11px;color:var(--text3);line-height:1.7"></div>
+      </div>
 
       <!-- Data preview -->
       <div id="filePreview" style="display:none;margin-top:12px">
@@ -793,6 +816,14 @@ function fileExt(name){return (name.split('.').pop()||'').toLowerCase();}
 async function onFileSelect(e){const fs=Array.from(e.target.files||[]);if(fs.length)await handleFiles(fs);}
 function onDrop(e){e.preventDefault();document.getElementById('upZone').classList.remove('drag');const fs=Array.from(e.dataTransfer.files||[]);if(fs.length)handleFiles(fs);}
 
+// Find a child by attribute value without CSS.escape, which is unavailable in
+// some browsers and throws on names containing quotes or spaces.
+function findByAttr(parentSel,attr,value){
+  const p=document.querySelector(parentSel);
+  if(!p)return null;
+  return [...p.children].find(c=>c.getAttribute(attr)===value)||null;
+}
+
 function renderFileList(){
   const el=document.getElementById('fileList');
   if(!selectedFiles.length){el.style.display='none';return;}
@@ -829,7 +860,7 @@ async function handleFiles(files,skipReset){
 }
 
 function hidePanels(){
-  ['sheetPicker','pdfInfo','filePreview','datasetPicker'].forEach(id=>{
+  ['sheetPicker','pdfInfo','filePreview','datasetPicker','dsSummary'].forEach(id=>{
     const e=document.getElementById(id); if(e)e.style.display='none';
   });
 }
@@ -930,35 +961,66 @@ async function processFiles(){
 
     const r=await fetch(getUrl()+'/api/v1/upload/parse-multi',{method:'POST',body:fd});
     const res=await r.json().catch(()=>({success:false,error:'Server returned an invalid response'}));
-    if(!res.success){showParseError(res.error,'Check the failures list below.',res.failures);return;}
+    if(!res||!res.success){
+      showParseError((res&&res.error)||'Could not parse these files','Check the failures below.',res&&res.failures);
+      return;
+    }
 
     if(res.failed_count>0){
       const names=(res.failures||[]).map(f=>f.filename).join(', ');
       toast(`${res.failed_count} file(s) failed: ${names}`,'err');
     }
 
+    // Keep separate: let the user pick which dataset to analyse
     if(strategy==='separate'){
       parsedDatasets=res.records_by_file||{};
       const names=Object.keys(parsedDatasets);
+      if(!names.length){showParseError('No datasets came back from the server.');return;}
       renderDatasetTabs(names,res.datasets||[]);
       document.getElementById('datasetPicker').style.display='block';
-      if(names.length)selectDataset(names[0]);
+      selectDataset(names[0]);
       return;
     }
 
-    if(res.merge_error){showParseError('Could not combine files: '+res.merge_error,
-      'Try "Stack rows" instead, or specify a join key that exists in every file.');return;}
+    if(res.merge_error){
+      showParseError('Could not combine files: '+res.merge_error,
+        'Try "Stack rows" instead, or name a join key that exists in every file.');
+      // Still let them use the individual files
+      if(res.records_by_file){
+        parsedDatasets=res.records_by_file;
+        const names=Object.keys(parsedDatasets);
+        if(names.length){
+          renderDatasetTabs(names,res.datasets||[]);
+          document.getElementById('datasetPicker').style.display='block';
+          selectDataset(names[0]);
+        }
+      }
+      return;
+    }
 
     const m=res.merged;
+    if(!m||!Array.isArray(m.records)||!m.records.length){
+      showParseError('The server merged the files but returned no rows.',
+        'Try "Keep separate" to inspect each file on its own.');
+      return;
+    }
+
     uploadedData=m.records;
     let note='';
     if(m.strategy==='stack'&&m.rows_per_file)
       note=' · '+Object.entries(m.rows_per_file).map(([f,n])=>`${f}: ${n}`).join(', ');
-    if(m.strategy==='join')note=` · joined on "${m.join_key}"`;
-    showPreview({...m,source_format:`${res.file_count} files ${m.strategy==='join'?'joined':'stacked'}${note}`});
-    toast(`${res.file_count} files combined — ${m.row_count} rows, ${m.col_count} columns`,'ok');
+    if(m.strategy==='join'&&m.join_key)note=` · joined on "${m.join_key}"`;
+    showPreview({
+      records:m.records,
+      columns:m.columns||Object.keys(m.records[0]),
+      row_count:m.row_count!=null?m.row_count:m.records.length,
+      col_count:m.col_count!=null?m.col_count:Object.keys(m.records[0]).length,
+      source_format:`${res.file_count} files ${m.strategy==='join'?'joined':'stacked'}${note}`,
+    });
+    toast(`${res.file_count} files combined — ${m.records.length} rows`,'ok');
   }catch(err){
-    showParseError('Could not reach the server: '+err.message,
+    console.error('processFiles failed:',err);
+    showParseError('Could not process these files: '+err.message,
       'Check that your backend URL is correct and the service is running.');
   }
 }
@@ -975,7 +1037,7 @@ function selectDataset(name,btn){
   activeDataset=name;
   uploadedData=parsedDatasets[name]||[];
   document.querySelectorAll('#datasetTabs .sql-sample').forEach(b=>{b.style.borderColor='var(--border)';b.style.color='var(--text2)';});
-  const t=btn||document.querySelector(`#datasetTabs [data-ds="${CSS.escape(name)}"]`);
+  const t=btn||findByAttr('#datasetTabs','data-ds',name);
   if(t){t.style.borderColor='var(--accent)';t.style.color='var(--accent)';}
   if(uploadedData.length){
     showPreview({records:uploadedData,columns:Object.keys(uploadedData[0]),
@@ -994,7 +1056,7 @@ function renderSheetTabs(sheets){
 async function loadSheet(name,btn){
   if(!currentFile)return;
   document.querySelectorAll('#sheetTabs .sql-sample').forEach(b=>{b.style.borderColor='var(--border)';b.style.color='var(--text2)';});
-  const t=btn||document.querySelector(`#sheetTabs [data-sheet="${CSS.escape(name)}"]`);
+  const t=btn||findByAttr('#sheetTabs','data-sheet',name);
   if(t){t.style.borderColor='var(--accent)';t.style.color='var(--accent)';}
   await parseOne(currentFile,name);
 }
@@ -1002,19 +1064,57 @@ async function loadSheet(name,btn){
 // ── PREVIEW + ERRORS ───────────────────────────────────────────────────────
 function showPreview(res){
   const rows=(res.records||[]).slice(0,8);
-  if(!rows.length){document.getElementById('filePreview').style.display='none';return;}
+  if(!rows.length){
+    document.getElementById('filePreview').style.display='none';
+    document.getElementById('dsSummary').style.display='none';
+    return;
+  }
+
+  // Clear any earlier error styling on the info panel
+  const pi=document.getElementById('pdfInfo');
+  if(pi)pi.style.borderColor='var(--border)';
+
+  const cols=res.columns||Object.keys(rows[0]);
+  const all=res.records||[];
+  const numCols=cols.filter(c=>all.some(r=>typeof r[c]==='number'));
+  const catCols=cols.filter(c=>!numCols.includes(c));
+  let missing=0;
+  all.forEach(r=>cols.forEach(c=>{if(r[c]==null||r[c]==='')missing++;}));
+  const completeness=all.length?Math.round((1-missing/(all.length*cols.length))*100):100;
+
+  // ── Summary card ──
+  document.getElementById('dsSummary').style.display='block';
+  const stat=(label,value,color)=>
+    `<div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">${label}</div>`+
+    `<div style="font-size:17px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${color||'var(--text)'}">${value}</div></div>`;
+  document.getElementById('dsStats').innerHTML=
+    stat('Rows',(res.row_count||all.length).toLocaleString())+
+    stat('Columns',res.col_count||cols.length)+
+    stat('Numeric',numCols.length)+
+    stat('Categorical',catCols.length)+
+    stat('Complete',completeness+'%',completeness>=95?'var(--green)':completeness>=80?'var(--warn)':'var(--red)');
+
+  const src=res.source_format||'file';
+  const sheet=res.sheet_used?` · sheet "${res.sheet_used}"`:'';
+  const tbl=res.table_used?` · table on page ${res.table_used.page}`:'';
+  document.getElementById('dsCols').innerHTML=
+    `<strong style="color:var(--text2)">Source:</strong> ${src}${sheet}${tbl}<br>`+
+    `<strong style="color:var(--text2)">Measures:</strong> ${numCols.length?numCols.map(c=>c.replace(/_/g,' ')).join(', '):'none detected'}<br>`+
+    `<strong style="color:var(--text2)">Dimensions:</strong> ${catCols.length?catCols.map(c=>c.replace(/_/g,' ')).join(', '):'none detected'}`;
+
+  // ── Preview table ──
   document.getElementById('filePreview').style.display='block';
   previewVisible=true;
   document.getElementById('filePreviewTable').style.display='block';
-  const fmt=res.source_format||'file';
-  const sheet=res.sheet_used?` · sheet "${res.sheet_used}"`:'';
-  const tbl=res.table_used?` · table on page ${res.table_used.page}`:'';
   document.getElementById('previewMeta').textContent=
-    `Preview — ${res.row_count} rows × ${res.col_count} columns · ${fmt}${sheet}${tbl}`;
-  const cols=res.columns||Object.keys(rows[0]);
+    `First ${rows.length} of ${(res.row_count||all.length).toLocaleString()} rows`;
   document.getElementById('filePreviewTable').innerHTML=
-    `<div class="table-wrap"><table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`+
-    rows.map(r=>`<tr>${cols.map(c=>`<td>${r[c]!=null?r[c]:''}</td>`).join('')}</tr>`).join('')+
+    `<div class="table-wrap"><table><thead><tr>${cols.map(c=>`<th>${c.replace(/_/g,' ')}</th>`).join('')}</tr></thead><tbody>`+
+    rows.map(r=>`<tr>${cols.map(c=>{
+      const v=r[c];
+      const isNum=typeof v==='number';
+      return `<td${isNum?' style="font-family:JetBrains Mono,monospace;text-align:right"':''}>${v!=null?(isNum?v.toLocaleString():v):'<span style="color:var(--text3)">—</span>'}</td>`;
+    }).join('')}</tr>`).join('')+
     `</tbody></table></div>`;
 }
 
@@ -1056,6 +1156,7 @@ function clearFile(){
   document.getElementById('fileList').style.display='none';
   document.getElementById('mergeBar').style.display='none';
   hidePanels();
+  const ds=document.getElementById('dsSummary'); if(ds)ds.style.display='none';
   const pi=document.getElementById('pdfInfo');
   if(pi)pi.style.borderColor='var(--border)';
 }
@@ -1145,8 +1246,20 @@ function renderMetricsFromData(data){if(!data||!data.length)return;const nk=Obje
 function renderMetrics(ms){document.getElementById('metricsRow').innerHTML=ms.map(m=>{const tc=m.trend==='up'?'up':m.trend==='down'?'dn':'nt';const arrow=m.trend==='up'?'↑ ':m.trend==='down'?'↓ ':'';const ch=m.change_pct!=null?`<div class="metric-change ${tc}">${arrow}${Math.abs(m.change_pct)}% vs previous</div>`:'';return`<div class="metric-card"><div class="metric-label">${m.label}</div><div class="metric-value">${m.value}</div>${ch}</div>`;}).join('');}
 
 const COLORS=['#00c8be','#3d7ef5','#f0a020','#f04060','#00d888','#8b5cf6','#ec4899','#14b8a6'];
-function getLayout(h=250){return{paper_bgcolor:'transparent',plot_bgcolor:'transparent',font:{color:'#6a85aa',family:'Inter Tight'},margin:{l:46,r:16,t:14,b:44},height:h,legend:{font:{color:'#6a85aa'}},xaxis:{gridcolor:'rgba(255,255,255,0.04)',zerolinecolor:'rgba(255,255,255,0.06)'},yaxis:{gridcolor:'rgba(255,255,255,0.04)',zerolinecolor:'rgba(255,255,255,0.06)'}};}
-const CFG={responsive:true,displayModeBar:false};
+function getLayout(h=250){return{
+  paper_bgcolor:'transparent',plot_bgcolor:'transparent',
+  font:{color:'#7d93b3',family:'Inter Tight',size:11},
+  margin:{l:52,r:18,t:12,b:44},
+  height:h,
+  hoverlabel:{bgcolor:'#141d33',bordercolor:'rgba(0,200,190,.35)',
+    font:{color:'#e8f0fa',family:'Inter Tight',size:11},align:'left'},
+  legend:{font:{color:'#7d93b3',size:10},bgcolor:'rgba(0,0,0,0)'},
+  xaxis:{gridcolor:'rgba(255,255,255,0.035)',zerolinecolor:'rgba(255,255,255,0.07)',
+    linecolor:'rgba(255,255,255,0.07)',tickfont:{size:10},automargin:true},
+  yaxis:{gridcolor:'rgba(255,255,255,0.035)',zerolinecolor:'rgba(255,255,255,0.07)',
+    linecolor:'rgba(255,255,255,0.07)',tickfont:{size:10},automargin:true},
+};}
+const CFG={responsive:true,displayModeBar:false,doubleClick:'reset'};
 function renderCharts(apiCharts,data,intents,query){const g=document.getElementById('chartsGrid');g.innerHTML='';apiCharts.forEach((c,i)=>{if(!c.data)return;const d=document.createElement('div');d.className='chart-card';d.innerHTML=`<div class="chart-title">${c.title}</div>${c.description?`<div class="chart-subtitle">${c.description}</div>`:''}<div class="chart-wrap" id="ac${i}"></div>`;g.appendChild(d);try{const fig=typeof c.data==='string'?JSON.parse(c.data):c.data;Plotly.newPlot('ac'+i,fig.data||[],Object.assign({},fig.layout||{},getLayout()),CFG);}catch(e){console.warn(e);}});buildQueryAwareCharts(data,g,apiCharts.length,intents,query);document.getElementById('chartsCount').textContent=(apiCharts.length+4)+' charts';}
 function rebuildCharts(data){const g=document.getElementById('chartsGrid');g.innerHTML='';buildQueryAwareCharts(data,g,0,detectQueryIntent(lastQuery),lastQuery);}
 // ── PROFESSIONAL CHART ENGINE ──────────────────────────────────────────────
@@ -1226,7 +1339,7 @@ function chartTrend(data,P,add,idx){
     marker:{size:6,color:PALETTE[i],line:{width:1.5,color:'rgba(255,255,255,.3)'}},
     hovertemplate:'%{x}<br>'+pretty(k)+': %{y:,.0f}<extra></extra>',
   }));
-  add('Trend Over Time','Each line is one metric. Steeper slope means faster change.',`c${idx}`,tr);
+  add('Trend Over Time','Each line is one metric. Steeper slope means faster change.',`c${idx}`,tr,null,null,{span:'span-12',kind:'line'});
   return idx+1;
 }
 
@@ -1236,25 +1349,45 @@ function chartPie(data,P,add,idx,metric){
   if(rows.length<2)return idx;
   const total=rows.reduce((a,[,v])=>a+v,0);
   if(total<=0)return idx;
-  const top=rows.slice(0,7);
-  const rest=rows.slice(7);
+  const top=rows.slice(0,6);
+  const rest=rows.slice(6);
   if(rest.length)top.push(['Other',rest.reduce((a,[,v])=>a+v,0)]);
   const lead=top[0];
+  const leadPct=((lead[1]/total)*100).toFixed(1);
+
   add(
     `${pretty(metric)} by ${pretty(P.pieCat.name)}`,
-    `${pretty(lead[0])} accounts for the largest share at ${((lead[1]/total)*100).toFixed(1)}%.`,
+    `${pretty(lead[0])} holds the largest share at ${leadPct}% of the ${fmtNum(total)} total.`,
     `c${idx}`,
     [{
-      labels:top.map(r=>pretty(r[0])),values:top.map(r=>r[1]),type:'pie',hole:0.55,
-      marker:{colors:PALETTE,line:{color:'#0b1221',width:2}},
-      textinfo:'label+percent',textposition:'outside',
-      textfont:{color:'#8aa0c0',size:11,family:'Inter Tight'},
-      hovertemplate:'%{label}<br>%{value:,.0f} (%{percent})<extra></extra>',
-      sort:true,direction:'clockwise',
+      labels:top.map(r=>pretty(r[0])),
+      values:top.map(r=>r[1]),
+      type:'pie',hole:0.58,
+      marker:{colors:PALETTE.slice(0,top.length),line:{color:'#0b1221',width:2.5}},
+      // Percent inside the slice; the name lives in the legend. Outside labels
+      // overflow a 360px card and get clipped.
+      textinfo:'percent',
+      textposition:'inside',
+      insidetextorientation:'horizontal',
+      textfont:{color:'#0b1221',size:12,family:'Inter Tight',weight:700},
+      hovertemplate:'<b>%{label}</b><br>'+pretty(metric)+': %{value:,.0f}<br>Share: %{percent}<extra></extra>',
+      sort:true,direction:'clockwise',rotation:0,
+      pull:top.map((_,i)=>i===0?0.04:0),
     }],
-    {...getLayout(300),showlegend:false,margin:{l:20,r:20,t:20,b:20},
-     annotations:[{text:`<b>${fmtNum(total)}</b><br><span style="font-size:10px">TOTAL</span>`,
-       showarrow:false,font:{size:19,color:'#e8f0fa',family:'Inter Tight'},x:0.5,y:0.5}]}
+    {
+      ...getLayout(310),
+      showlegend:true,
+      legend:{orientation:'h',y:-0.08,x:0.5,xanchor:'center',
+        font:{color:'#8aa0c0',size:10,family:'Inter Tight'},
+        itemsizing:'constant',bgcolor:'rgba(0,0,0,0)'},
+      margin:{l:10,r:10,t:10,b:52},
+      annotations:[{
+        text:`<b style="font-size:21px">${fmtNum(total)}</b><br><span style="font-size:9px;letter-spacing:1px">TOTAL</span>`,
+        showarrow:false,font:{color:'#e8f0fa',family:'Inter Tight'},
+        x:0.5,y:0.5,xanchor:'center',yanchor:'middle',
+      }],
+    },
+    'tall',{span:'span-4',kind:'donut'}
   );
   return idx+1;
 }
@@ -1265,20 +1398,28 @@ function chartRanking(data,P,add,idx,metric){
   const rows=groupSum(data,cat.name,metric).slice(0,10).reverse();
   if(rows.length<2)return idx;
   const max=Math.max(...rows.map(r=>r[1]));
+  const top=rows[rows.length-1];
+  const cls=rows.length>6?'xtall':rows.length>4?'tall':'';
+  const h=rows.length>6?380:rows.length>4?310:250;
   add(
-    `Top ${pretty(cat.name)} by ${pretty(metric)}`,
-    'Sorted highest to lowest. Bar length is directly proportional to value.',
+    `${pretty(cat.name)} Ranked by ${pretty(metric)}`,
+    `${pretty(top[0])} leads with ${fmtNum(top[1])}. Bar length is proportional to value.`,
     `c${idx}`,
     [{
       x:rows.map(r=>r[1]),y:rows.map(r=>pretty(r[0])),type:'bar',orientation:'h',
       marker:{color:rows.map(r=>r[1]),colorscale:SEQ_TEAL,
-        line:{color:'rgba(255,255,255,.08)',width:1}},
-      text:rows.map(r=>fmtNum(r[1])),textposition:'auto',
-      textfont:{color:'#e8f0fa',size:11,family:'JetBrains Mono'},
-      hovertemplate:'%{y}<br>'+pretty(metric)+': %{x:,.0f}<extra></extra>',
+        line:{color:'rgba(255,255,255,.10)',width:1}},
+      text:rows.map(r=>fmtNum(r[1])),
+      textposition:'outside',cliponaxis:false,
+      textfont:{color:'#8aa0c0',size:10,family:'JetBrains Mono'},
+      hovertemplate:'<b>%{y}</b><br>'+pretty(metric)+': %{x:,.0f}<extra></extra>',
     }],
-    {...getLayout(Math.max(240,rows.length*34)),margin:{l:110,r:40,t:14,b:40},
-     xaxis:{gridcolor:'rgba(255,255,255,0.04)',range:[0,max*1.15]}}
+    {...getLayout(h),
+     margin:{l:96,r:64,t:10,b:36},
+     xaxis:{gridcolor:'rgba(255,255,255,0.04)',range:[0,max*1.22],
+       zerolinecolor:'rgba(255,255,255,0.08)'},
+     yaxis:{gridcolor:'rgba(0,0,0,0)',tickfont:{size:11}}},
+    cls,{span:'span-8',kind:'ranked bar'}
   );
   return idx+1;
 }
@@ -1305,7 +1446,8 @@ function chartWaterfall(data,P,add,idx,metric){
       textposition:'outside',textfont:{color:'#8aa0c0',size:10,family:'JetBrains Mono'},
       hovertemplate:'%{x}<br>Change: %{y:,.0f}<extra></extra>',
     }],
-    {...getLayout(290),margin:{l:52,r:20,t:24,b:52}}
+    {...getLayout(300),margin:{l:56,r:18,t:26,b:56}},
+    'tall',{span:'span-12',kind:'waterfall'}
   );
   return idx+1;
 }
@@ -1338,7 +1480,8 @@ function chartAnomaly(data,P,add,idx,metric){
        font:{size:9,color:'rgba(140,160,190,.7)',family:'JetBrains Mono'}},
       {x:1,xref:'paper',y:mean+2.5*std,yanchor:'bottom',text:'2.5σ',showarrow:false,
        font:{size:9,color:'rgba(240,64,96,.7)',family:'JetBrains Mono'}},
-    ]}
+    ]},
+    'tall',{span:'span-6',kind:'anomaly'}
   );
   return idx+1;
 }
@@ -1363,7 +1506,8 @@ function chartGrouped(data,P,add,idx,metric){
       {type:'line',x0:0,x1:1,xref:'paper',y0:overall,y1:overall,
        line:{color:'rgba(240,160,32,.5)',dash:'dash',width:1}}],
      annotations:[{x:1,xref:'paper',y:overall,yanchor:'bottom',text:'overall mean',
-       showarrow:false,font:{size:9,color:'rgba(240,160,32,.75)',family:'JetBrains Mono'}}]}
+       showarrow:false,font:{size:9,color:'rgba(240,160,32,.75)',family:'JetBrains Mono'}}]},
+    'tall',{span:'span-6',kind:'grouped bar'}
   );
   return idx+1;
 }
@@ -1393,7 +1537,8 @@ function chartCorrelation(data,P,add,idx){
       textfont:{size:10,color:'#e8f0fa',family:'JetBrains Mono'},
       colorbar:{tickfont:{color:'#6a85aa',size:9},thickness:9,len:0.8},
       hovertemplate:'%{y} vs %{x}<br>r = %{z}<extra></extra>'}],
-    {...getLayout(Math.max(260,cols.length*46)),margin:{l:104,r:20,t:14,b:88}}
+    {...getLayout(cols.length>4?310:270),margin:{l:100,r:16,t:10,b:84}},
+    'tall',{span:'span-6',kind:'heatmap'}
   );
   return idx+1;
 }
@@ -1410,7 +1555,8 @@ function chartDistribution(data,P,add,idx){
       fillcolor:PALETTE[i]+'22',
       hovertemplate:pretty(k)+'<br>%{y:,.0f}<extra></extra>',
     })),
-    {...getLayout(270),showlegend:false}
+    {...getLayout(270),showlegend:false},
+    'tall',{span:'span-6',kind:'box plot'}
   );
   return idx+1;
 }
@@ -1434,7 +1580,8 @@ function chartScatter(data,P,add,idx){
     `${pretty(x)} vs ${pretty(y)}`,
     size?`Bubble size and colour show ${pretty(size)}. A diagonal pattern means the two metrics move together.`
         :'A diagonal pattern means the two metrics move together.',
-    `c${idx}`,[tr]
+    `c${idx}`,[tr],
+    null,null,{span:'span-6',kind:'bubble'}
   );
   return idx+1;
 }
@@ -1454,7 +1601,8 @@ function chartTreemap(data,P,add,idx,metric){
       textinfo:'label+value+percent root',
       textfont:{color:'#0b1221',size:12,family:'Inter Tight'},
       hovertemplate:'%{label}<br>%{value:,.0f} (%{percentRoot})<extra></extra>'}],
-    {...getLayout(300),margin:{l:6,r:6,t:6,b:6}}
+    {...getLayout(310),margin:{l:4,r:4,t:4,b:4}},
+    'tall',{span:'span-6',kind:'treemap'}
   );
   return idx+1;
 }
@@ -1471,7 +1619,8 @@ function chartFunnel(data,P,add,idx,metric){
       textinfo:'value+percent initial',
       textfont:{color:'#e8f0fa',size:11,family:'Inter Tight'},
       hovertemplate:'%{y}<br>%{x:,.0f}<extra></extra>'}],
-    {...getLayout(290),margin:{l:104,r:30,t:14,b:30}}
+    {...getLayout(300),margin:{l:100,r:44,t:12,b:28}},
+    'tall',{span:'span-6',kind:'funnel'}
   );
   return idx+1;
 }
@@ -1498,7 +1647,8 @@ function chartGauge(data,P,add,idx,metric){
         steps:[{range:[0,max*0.5],color:'rgba(255,255,255,.02)'},
                {range:[max*0.5,max*0.8],color:'rgba(255,255,255,.04)'}],
         threshold:{line:{color:'#f0a020',width:2},thickness:0.8,value:prev}}}],
-    {...getLayout(250),margin:{l:26,r:26,t:34,b:14}}
+    {...getLayout(250),margin:{l:26,r:26,t:34,b:14}},
+    null,{span:'span-4',kind:'kpi gauge'}
   );
   return idx+1;
 }
@@ -1511,10 +1661,18 @@ function buildQueryAwareCharts(data,g,off,intents,query){
   const metric=pickMetric(query,P.num);
   let idx=off;
 
-  const add=(t,s,id,tr,ly)=>{
+  const add=(t,s,id,tr,ly,cls,opts)=>{
+    opts=opts||{};
     const d=document.createElement('div');
-    d.className='chart-card';
-    d.innerHTML=`<div class="chart-title">${t}</div>${s?`<div class="chart-subtitle">${s}</div>`:''}<div class="chart-wrap" id="${id}"></div>`;
+    d.className='chart-card '+(opts.span||'span-6');
+    d.innerHTML=
+      `<div class="chart-head">`+
+        `<div class="chart-title"><span>${t}</span>`+
+        (opts.kind?`<span class="chart-kind">${opts.kind}</span>`:'')+
+        `</div>`+
+        (s?`<div class="chart-subtitle">${s}</div>`:'')+
+      `</div>`+
+      `<div class="chart-wrap${cls?' '+cls:''}" id="${id}"></div>`;
     g.appendChild(d);
     try{Plotly.newPlot(id,tr,ly||{...getLayout()},CFG);}catch(e){console.warn('Chart failed:',t,e);}
   };
@@ -1594,12 +1752,16 @@ function buildQueryAwareCharts(data,g,off,intents,query){
   if(explicitOnly)return;
 
   // ── Priority 3: fill out a complete picture (executive default) ──
-  if(P.pieCat) run('pie',()=>chartPie(data,P,add,idx,metric));
-  if(P.groupCat) run('rank',()=>chartRanking(data,P,add,idx,metric));
-  run('gauge',()=>chartGauge(data,P,add,idx,metric));
-  if(P.num.length>=2) run('corr',()=>chartCorrelation(data,P,add,idx));
-  run('dist',()=>chartDistribution(data,P,add,idx));
-  if(P.num.length>=2) run('scatter',()=>chartScatter(data,P,add,idx));
+  // Capped: a dashboard with a dozen charts is a data dump, not a dashboard.
+  const MAX_CHARTS=6;
+  const room=()=>built.size<MAX_CHARTS;
+
+  if(room()&&P.pieCat) run('pie',()=>chartPie(data,P,add,idx,metric));
+  if(room()&&P.groupCat) run('rank',()=>chartRanking(data,P,add,idx,metric));
+  if(room()) run('gauge',()=>chartGauge(data,P,add,idx,metric));
+  if(room()&&P.num.length>=2) run('corr',()=>chartCorrelation(data,P,add,idx));
+  if(room()) run('dist',()=>chartDistribution(data,P,add,idx));
+  if(room()&&P.num.length>=2) run('scatter',()=>chartScatter(data,P,add,idx));
 
   // Nothing rendered? Fall back to a bare trend so the grid is never empty.
   if(!built.size&&P.num.length){
@@ -1609,6 +1771,15 @@ function buildQueryAwareCharts(data,g,off,intents,query){
         marker:{color:PALETTE[i]}})));
   }
 }
+
+window.addEventListener('resize',()=>{
+  clearTimeout(window.__rt);
+  window.__rt=setTimeout(()=>{
+    document.querySelectorAll('.chart-wrap').forEach(el=>{
+      if(el.querySelector('.plotly')){try{Plotly.Plots.resize(el);}catch(e){}}
+    });
+  },180);
+});
 
 function renderPreview(rows){if(!rows||!rows.length){document.getElementById('dataTable').innerHTML='';return;}const cols=Object.keys(rows[0]);document.getElementById('dataTable').innerHTML=`<div class="table-wrap"><table><thead><tr>${cols.map(c=>`<th>${c.replace(/_/g,' ')}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${cols.map(c=>`<td>${r[c]!=null?r[c]:''}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;}
 
