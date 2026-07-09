@@ -668,6 +668,34 @@ const QUERY_INTENTS = {
   tax:['tax','etr','effective tax','tax rate','tax burden','jurisdiction'],
   accounting:['ratio','margin','liquidity','dso','dpo','working capital','health','balance sheet'],
 };
+// Explicit chart-type requests. If the user names a chart, they get that chart —
+// this overrides inferred intent. Keys map to builder names in the orchestrator.
+const CHART_ALIASES = {
+  pie:        ['pie chart','pie','donut','doughnut','ring chart'],
+  treemap:    ['treemap','tree map','tree-map','mosaic'],
+  rank:       ['bar chart','ranked bar','horizontal bar','ranking chart','leaderboard chart','column chart'],
+  waterfall:  ['waterfall','waterfall chart','bridge chart','cascade chart'],
+  funnel:     ['funnel chart','funnel'],
+  corr:       ['heatmap','heat map','correlation matrix','corr matrix'],
+  scatter:    ['scatter','scatter plot','scatterplot','bubble chart','bubble plot','xy plot'],
+  dist:       ['box plot','boxplot','box-and-whisker','histogram','distribution chart','violin'],
+  gauge:      ['gauge','speedometer','dial','kpi card'],
+  trend:      ['line chart','line graph','trend line','time series chart','area chart'],
+  anomaly:    ['anomaly chart','outlier chart','control chart'],
+  grouped:    ['grouped bar','clustered bar','grouped chart','comparison bar'],
+};
+
+function detectChartRequests(q){
+  q=(q||'').toLowerCase();
+  const asked=[];
+  for(const[builder,aliases]of Object.entries(CHART_ALIASES)){
+    // Longest alias first, so "pie chart" wins over "pie"
+    const sorted=[...aliases].sort((a,b)=>b.length-a.length);
+    if(sorted.some(a=>q.includes(a)))asked.push(builder);
+  }
+  return asked;
+}
+
 function detectQueryIntent(q){
   q=(q||'').toLowerCase();
   const r=[];
@@ -1495,7 +1523,33 @@ function buildQueryAwareCharts(data,g,off,intents,query){
   const built=new Set();
   const run=(name,fn)=>{if(built.has(name))return;const n=fn();if(n!==idx){built.add(name);idx=n;}};
 
-  // ── Priority 1: what the query explicitly asked for ──
+  // Map builder names to their functions, so an explicit request can call any of them
+  const BUILDERS={
+    trend:      ()=>chartTrend(data,P,add,idx),
+    pie:        ()=>chartPie(data,P,add,idx,metric),
+    rank:       ()=>chartRanking(data,P,add,idx,metric),
+    waterfall:  ()=>chartWaterfall(data,P,add,idx,metric),
+    anomaly:    ()=>chartAnomaly(data,P,add,idx,metric),
+    grouped:    ()=>chartGrouped(data,P,add,idx,metric),
+    corr:       ()=>chartCorrelation(data,P,add,idx),
+    dist:       ()=>chartDistribution(data,P,add,idx),
+    scatter:    ()=>chartScatter(data,P,add,idx),
+    treemap:    ()=>chartTreemap(data,P,add,idx,metric),
+    funnel:     ()=>chartFunnel(data,P,add,idx,metric),
+    gauge:      ()=>chartGauge(data,P,add,idx,metric),
+  };
+
+  // ── Priority 0: the user named a chart type explicitly. Honour it. ──
+  const explicit=detectChartRequests(query);
+  explicit.forEach(name=>{
+    if(BUILDERS[name])run(name,BUILDERS[name]);
+  });
+
+  // If they asked for specific charts and got them, don't bury them
+  // under six more. Add one supporting trend and stop.
+  const explicitOnly=explicit.length>0&&built.size>0;
+
+  // ── Priority 1: what the query implies ──
   if(has('composition')){
     run('pie',()=>chartPie(data,P,add,idx,metric));
     run('treemap',()=>chartTreemap(data,P,add,idx,metric));
@@ -1534,6 +1588,10 @@ function buildQueryAwareCharts(data,g,off,intents,query){
 
   // ── Priority 2: always give a trend if the data is sequential ──
   run('trend',()=>chartTrend(data,P,add,idx));
+
+  // If the user named specific charts, they got them plus one trend. Stop here
+  // rather than burying their request under six generic charts.
+  if(explicitOnly)return;
 
   // ── Priority 3: fill out a complete picture (executive default) ──
   if(P.pieCat) run('pie',()=>chartPie(data,P,add,idx,metric));
