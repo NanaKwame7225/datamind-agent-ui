@@ -55,14 +55,15 @@ h1,h2,h3,.font-head{font-family:'Inter Tight',sans-serif;font-weight:700;letter-
 @keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 
 /* ANALYSE PAGE */
-.analyse-layout{display:grid;grid-template-columns:1fr;max-width:900px;margin:0 auto;padding:32px 24px}
-.analyse-hero{text-align:center;margin-bottom:28px}
+.analyse-layout{display:grid;grid-template-columns:minmax(0,1fr);max-width:900px;margin:0 auto;padding:32px 24px;width:100%}
+.analyse-card{min-width:0}
+.analyse-hero{text-align:center;margin-bottom:28px;min-width:0}
 .analyse-hero h1{font-size:30px;font-weight:800;letter-spacing:-0.03em;margin-bottom:8px}
 .analyse-hero .font-serif{font-style:italic;color:var(--accent)}
 .analyse-hero p{color:var(--text2);font-size:14px;line-height:1.7;max-width:480px;margin:0 auto}
 .analyse-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:16px}
 .analyse-card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text2);margin-bottom:14px}
-.ind-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}
+.ind-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:8px}
 .ind-btn{padding:12px 6px;border-radius:var(--r);border:1px solid var(--border);background:var(--card2);color:var(--text2);cursor:pointer;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:5px;font-size:10px;text-align:center;font-family:'Inter Tight',sans-serif}
 .ind-btn:hover{border-color:var(--border2);color:var(--text)}
 .ind-btn.active{border-color:var(--accent);background:rgba(0,200,190,.08);color:var(--accent)}
@@ -81,7 +82,7 @@ h1,h2,h3,.font-head{font-family:'Inter Tight',sans-serif;font-weight:700;letter-
 .form-textarea{width:100%;padding:13px 15px;border-radius:var(--r);border:1px solid var(--border);background:var(--card2);color:var(--text);font-family:'Inter Tight',sans-serif;font-size:14px;outline:none;transition:border-color .18s;resize:none;line-height:1.6}
 .form-textarea:focus{border-color:var(--accent)}
 .form-textarea::placeholder{color:var(--text3)}
-.qprompts{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+.qprompts{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:6px;margin-top:10px}
 .qp{padding:9px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--text2);font-size:11px;cursor:pointer;text-align:left;transition:all .15s;font-family:'Inter Tight',sans-serif;line-height:1.4}
 .qp:hover{border-color:var(--border2);color:var(--text)}
 .run-btn{width:100%;padding:15px;border-radius:var(--r);border:none;background:var(--accent);color:#000;font-family:'Inter Tight',sans-serif;font-weight:700;font-size:15px;cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:-0.01em}
@@ -96,11 +97,12 @@ h1,h2,h3,.font-head{font-family:'Inter Tight',sans-serif;font-weight:700;letter-
 
 /* CONTENT PAGES (dashboard/sql/insights) */
 .content-wrap{padding:24px;max-width:1400px;margin:0 auto}
-.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:16px}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:16px;flex-wrap:wrap}
+.page-header>div:first-child{min-width:0;flex:1 1 220px}
 .page-title{font-size:22px;font-weight:800;letter-spacing:-0.03em}
 .page-subtitle{font-size:13px;color:var(--text2);margin-top:3px}
 .page-meta{font-size:11px;color:var(--text3);margin-top:3px;font-family:'JetBrains Mono',monospace}
-.page-actions{display:flex;gap:8px;flex-shrink:0}
+.page-actions{display:flex;gap:8px;flex-wrap:wrap}
 .action-btn{padding:8px 14px;border-radius:var(--r);border:1px solid var(--border);background:var(--card);color:var(--text2);font-size:12px;cursor:pointer;transition:all .15s;font-family:'Inter Tight',sans-serif;font-weight:600;white-space:nowrap;display:flex;align-items:center;gap:6px}
 .action-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .action-btn:hover{border-color:var(--border2);color:var(--text);background:var(--card2)}
@@ -181,6 +183,9 @@ body.theme-light .slicers-bar{box-shadow:0 8px 28px rgba(0,0,0,.12)}
 .chart-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:11px 13px;overflow:hidden;transition:border-color .18s;display:flex;flex-direction:column;min-width:0}
 .chart-card:hover{border-color:var(--border2)}
 .chart-card.wide{grid-column:1/-1}
+/* The data-table card holds a scrolling table, not a chart */
+#dataTable{display:block;overflow:hidden;max-width:100%}
+#dataTable .table-wrap{min-width:0}
 .chart-head{margin-bottom:6px}
 .chart-title{font-size:11px;font-weight:700;color:var(--accent);margin-bottom:2px;letter-spacing:.01em;display:flex;align-items:baseline;justify-content:space-between;gap:8px;text-transform:uppercase}
 .chart-title>span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -293,7 +298,8 @@ body.theme-light .slicers-bar{box-shadow:0 8px 28px rgba(0,0,0,.12)}
 .sql-hint{color:var(--text2);font-size:11px;margin-top:6px}
 
 /* TABLE */
-.table-wrap{overflow-x:auto;border-radius:var(--r);border:1px solid var(--border)}
+.table-wrap{overflow-x:auto;max-width:100%;border-radius:var(--r);border:1px solid var(--border);-webkit-overflow-scrolling:touch}
+.table-wrap table{min-width:max-content}
 table{width:100%;border-collapse:collapse;font-size:12px}
 th{background:var(--card2);padding:9px 12px;text-align:left;color:var(--text2);font-weight:700;white-space:nowrap;font-size:9px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border)}
 td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11px}
@@ -327,7 +333,6 @@ tr:hover td{background:rgba(255,255,255,.02)}
 @media(max-width:900px){
   .nav-tabs{position:fixed;bottom:0;left:0;right:0;top:auto;border-radius:0;border-left:none;border-right:none;border-bottom:none;z-index:150;justify-content:space-around;padding:6px}
   .nav-tab span{display:none}
-  .ind-grid{grid-template-columns:repeat(4,1fr)}
   .charts-grid{grid-template-columns:1fr}
   .qprompts{grid-template-columns:1fr}
   .theme-panel{right:8px}
