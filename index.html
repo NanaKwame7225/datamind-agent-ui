@@ -72,6 +72,27 @@ h1,h2,h3,.font-head{font-family:'Inter Tight',sans-serif;font-weight:700;letter-
 .ind-label{font-size:10px;font-weight:600}
 .upload-zone{border:1.5px dashed var(--border2);border-radius:var(--r);padding:20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--card2)}
 .upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:rgba(0,200,190,.05)}
+
+/* Load from a link */
+.url-row{margin-top:14px}
+.url-or{display:flex;align-items:center;gap:10px;margin-bottom:11px}
+.url-or::before,.url-or::after{content:'';flex:1;height:1px;background:var(--border)}
+.url-or span{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.11em;color:var(--text3);white-space:nowrap}
+.url-input-row{display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--border);border-radius:var(--r);padding:4px 4px 4px 11px;transition:border-color .15s;min-width:0}
+.url-input-row:focus-within{border-color:var(--accent)}
+.url-icon{width:14px;height:14px;stroke:var(--text3);fill:none;stroke-width:2;flex-shrink:0}
+.url-input{flex:1;min-width:0;background:none;border:none;outline:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11.5px;padding:8px 0}
+.url-input::placeholder{color:var(--text3);font-family:'JetBrains Mono',monospace}
+.url-input-row .apply-btn{flex-shrink:0;padding:8px 15px;font-size:11px}
+.url-hint{font-size:10px;color:var(--text3);margin-top:7px;line-height:1.55}
+.url-help{background:none;border:none;color:var(--accent);font-family:inherit;font-size:10px;cursor:pointer;padding:0;margin-left:4px;text-decoration:underline;text-underline-offset:2px}
+.url-status{margin-top:9px;display:none;font-size:11px;padding:9px 11px;border-radius:7px;line-height:1.5}
+.url-status.loading{display:block;background:var(--card2);border:1px solid var(--border);color:var(--text2)}
+.url-status.ok{display:block;background:rgba(0,216,136,.06);border:1px solid rgba(0,216,136,.25);color:var(--green)}
+.url-status.err{display:block;background:rgba(240,64,96,.06);border:1px solid rgba(240,64,96,.25);color:var(--red)}
+.url-status .us-hint{color:var(--warn);margin-top:5px;font-size:10.5px}
+.url-src-table{margin-top:9px;font-size:10.5px;line-height:1.7;color:var(--text2)}
+.url-src-table b{color:var(--accent);font-weight:600}
 .uz-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px}
 .uz-sub{font-size:11px;color:var(--text2)}
 .uz-fmt{font-size:10px;color:var(--text3);margin-top:4px;font-family:'JetBrains Mono',monospace}
@@ -418,6 +439,24 @@ tr:hover td{background:rgba(255,255,255,.02)}
         <div class="uz-fmt">CSV · Excel · PDF · JSON · Parquet</div>
       </div>
       <input type="file" id="fileInput" accept=".csv,.tsv,.xlsx,.xlsm,.xls,.json,.parquet,.pdf" multiple onchange="onFileSelect(event)">
+
+      <!-- Load from a link: Google Sheets, Dropbox, S3, GitHub… -->
+      <div class="url-row">
+        <div class="url-or"><span>or paste a link</span></div>
+        <div class="url-input-row">
+          <svg class="url-icon" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          <input id="urlInput" class="url-input" type="url" spellcheck="false"
+                 placeholder="https://docs.google.com/spreadsheets/d/..."
+                 onkeydown="if(event.key==='Enter'){event.preventDefault();loadFromUrl();}">
+          <button class="apply-btn" id="urlBtn" onclick="loadFromUrl()">Load</button>
+        </div>
+        <div class="url-hint">
+          Google Sheets · Drive · Dropbox · OneDrive · GitHub · S3 — the file must be shared so anyone with the link can view it.
+          <button class="url-help" onclick="showUrlSources()">Which links work?</button>
+        </div>
+        <div id="urlStatus" class="url-status"></div>
+      </div>
+
       <div id="fileList" style="display:none;flex-direction:column;gap:5px;margin-top:8px"></div>
 
       <!-- Multi-file merge controls -->
@@ -862,6 +901,140 @@ function fileExt(name){return (name.split('.').pop()||'').toLowerCase();}
 async function onFileSelect(e){const fs=Array.from(e.target.files||[]);if(fs.length)await handleFiles(fs);}
 function onDrop(e){e.preventDefault();document.getElementById('upZone').classList.remove('drag');const fs=Array.from(e.dataTransfer.files||[]);if(fs.length)handleFiles(fs);}
 
+// ── LOAD FROM A LINK ───────────────────────────────────────────────────────
+let currentUrl=null;
+
+const URL_EXAMPLES={
+  'Google Sheets':'https://docs.google.com/spreadsheets/d/…/edit',
+  'Google Drive':'https://drive.google.com/file/d/…/view',
+  'Dropbox':'https://www.dropbox.com/s/…/data.csv?dl=0',
+  'OneDrive':'https://1drv.ms/x/s!…',
+  'GitHub':'https://github.com/user/repo/blob/main/data.csv',
+  'Direct link':'https://bucket.s3.amazonaws.com/data.csv',
+};
+
+function urlStatus(kind,msg,hint){
+  const el=document.getElementById('urlStatus');
+  el.className='url-status '+kind;
+  el.innerHTML=msg+(hint?`<div class="us-hint">${hint}</div>`:'');
+}
+
+function showUrlSources(){
+  const rows=Object.entries(URL_EXAMPLES)
+    .map(([k,v])=>`<div><b>${k}</b> — <span style="font-family:'JetBrains Mono',monospace;font-size:10px">${v}</span></div>`)
+    .join('');
+  urlStatus('loading',
+    `<strong>Supported links</strong><div class="url-src-table">${rows}</div>`+
+    `<div style="margin-top:9px;color:var(--text3)">Formats: CSV · TSV · Excel · JSON · Parquet · PDF. Max 100MB. `+
+    `No sign-in — the file just has to be publicly viewable via its link.</div>`);
+}
+
+function normaliseTyped(u){
+  u=(u||'').trim();
+  if(!u)return '';
+  if(!/^https?:\/\//i.test(u))u='https://'+u;
+  return u;
+}
+
+async function loadFromUrl(){
+  const raw=document.getElementById('urlInput').value;
+  const url=normaliseTyped(raw);
+  if(!url){urlStatus('err','Paste a link first.');return;}
+
+  const btn=document.getElementById('urlBtn');
+  btn.disabled=true; btn.textContent='Loading';
+  urlStatus('loading','Fetching that link…');
+  hidePanels();
+  currentUrl=url;
+  currentFile=null;
+  selectedFiles=[];
+  renderFileList();
+  document.getElementById('mergeBar').style.display='none';
+
+  try{
+    // Inspect first: an Excel workbook may have several sheets to choose from
+    const ins=await fetch(getUrl()+'/api/v1/url/inspect',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({url})});
+    const info=await ins.json().catch(()=>({success:false,error:'The server returned an invalid response.'}));
+
+    if(!info.success){
+      urlStatus('err',info.error||'Could not read that link.',info.hint);
+      toast(info.error?info.error.substring(0,54):'Could not read that link','err');
+      return;
+    }
+
+    if(info.type==='excel'&&(info.sheets||[]).length>1){
+      renderUrlSheetTabs(info.sheets);
+      document.getElementById('sheetPicker').style.display='block';
+      const biggest=info.sheets.reduce((a,b)=>b.rows>a.rows?b:a,info.sheets[0]);
+      await parseUrl(url,biggest.name,info.source);
+      return;
+    }
+    if(info.type==='pdf'){
+      const pi=document.getElementById('pdfInfo');
+      pi.style.display='block';
+      pi.innerHTML=`<strong style="color:var(--accent)">PDF from ${srcLabel(info.source)}:</strong> `+
+        `${info.pages} page${info.pages!==1?'s':''}, ${info.tables_found} table${info.tables_found!==1?'s':''} found.`;
+      if(!info.tables_found){
+        urlStatus('err','That PDF has no structured tables.','Export it to CSV or Excel first.');
+        return;
+      }
+    }
+    await parseUrl(url,null,info.source);
+  }catch(err){
+    urlStatus('err','Could not reach the server: '+err.message,
+      'Check your backend URL and that the service is running.');
+  }finally{
+    btn.disabled=false; btn.textContent='Load';
+  }
+}
+
+async function parseUrl(url,sheetName,source){
+  try{
+    const r=await fetch(getUrl()+'/api/v1/url/parse',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({url,sheet_name:sheetName||null})});
+    const res=await r.json().catch(()=>({success:false,error:'The server returned an invalid response.'}));
+    if(!res.success){
+      urlStatus('err',res.error||'Could not load that file.',res.hint);
+      toast(res.error?res.error.substring(0,54):'Could not load that link','err');
+      return;
+    }
+    uploadedData=res.records;
+    const src=srcLabel(res.source||source);
+    const sheet=res.sheet_used?` · sheet "${res.sheet_used}"`:'';
+    urlStatus('ok',
+      `Loaded <strong>${res.filename}</strong> from ${src} — `+
+      `${res.row_count.toLocaleString()} rows × ${res.col_count} columns${sheet}.`);
+    showPreview({...res,source_format:`${src}${sheet}`});
+    toast(`Loaded ${res.row_count.toLocaleString()} rows from ${src}`,'ok');
+  }catch(err){
+    urlStatus('err','Could not reach the server: '+err.message);
+  }
+}
+
+function srcLabel(s){
+  return ({google_sheets:'Google Sheets',google_drive:'Google Drive',dropbox:'Dropbox',
+           onedrive:'OneDrive',github:'GitHub',direct:'that link'})[s]||'that link';
+}
+
+function renderUrlSheetTabs(sheets){
+  document.getElementById('sheetTabs').innerHTML=sheets.map(s=>
+    `<button class="sql-sample" data-sheet="${s.name}" onclick="loadUrlSheet('${s.name.replace(/'/g,"\\'")}',this)">`+
+    `${s.name} <span style="opacity:.6">(${s.rows})</span></button>`).join('');
+}
+
+async function loadUrlSheet(name,btn){
+  if(!currentUrl)return;
+  document.querySelectorAll('#sheetTabs .sql-sample').forEach(b=>{
+    b.style.borderColor='var(--border)';b.style.color='var(--text2)';});
+  const t=btn||findByAttr('#sheetTabs','data-sheet',name);
+  if(t){t.style.borderColor='var(--accent)';t.style.color='var(--accent)';}
+  urlStatus('loading',`Loading sheet "${name}"…`);
+  await parseUrl(currentUrl,name);
+}
+
 // Find a child by attribute value without CSS.escape, which is unavailable in
 // some browsers and throws on names containing quotes or spaces.
 function findByAttr(parentSel,attr,value){
@@ -890,6 +1063,9 @@ function removeFile(i){
 
 async function handleFiles(files,skipReset){
   if(files.length>10){toast('Maximum 10 files at once','err');return;}
+  // A file upload replaces anything loaded from a link
+  currentUrl=null;
+  const us=document.getElementById('urlStatus'); if(us){us.className='url-status';us.innerHTML='';}
   if(!skipReset)selectedFiles=files;
   renderFileList();
   hidePanels();
@@ -1197,7 +1373,9 @@ function togglePreview(btn){
 
 function clearFile(){
   uploadedData=null;currentFile=null;currentSheets=[];selectedFiles=[];
-  parsedDatasets={};activeDataset=null;
+  parsedDatasets={};activeDataset=null;currentUrl=null;
+  const ui=document.getElementById('urlInput'); if(ui)ui.value='';
+  const us=document.getElementById('urlStatus'); if(us){us.className='url-status';us.innerHTML='';}
   document.getElementById('fileInput').value='';
   document.getElementById('fileList').style.display='none';
   document.getElementById('mergeBar').style.display='none';
