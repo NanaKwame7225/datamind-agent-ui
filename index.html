@@ -73,6 +73,69 @@ h1,h2,h3,.font-head{font-family:'Inter Tight',sans-serif;font-weight:700;letter-
 .upload-zone{border:1.5px dashed var(--border2);border-radius:var(--r);padding:20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--card2)}
 .upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:rgba(0,200,190,.05)}
 
+/* Account button in header */
+.acct-btn{display:flex;align-items:center;gap:6px;padding:7px 13px;border-radius:20px;border:1px solid var(--border);background:var(--card);color:var(--text2);cursor:pointer;font-family:'Inter Tight',sans-serif;font-size:12px;font-weight:600;transition:all .16s;white-space:nowrap}
+.acct-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.acct-btn:hover{border-color:var(--accent);color:var(--accent)}
+.acct-btn.signed{border-color:var(--accent);color:var(--accent)}
+
+/* Auth modal */
+.auth-backdrop{position:fixed;inset:0;background:rgba(3,8,18,.78);backdrop-filter:blur(6px);z-index:400;display:none;align-items:center;justify-content:center;padding:20px}
+.auth-backdrop.open{display:flex}
+.auth-modal{position:relative;width:100%;max-width:380px;background:var(--card);border:1px solid var(--border2);border-radius:18px;padding:26px 24px 20px}
+.auth-x{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--text3);font-size:22px;cursor:pointer;line-height:1}
+.auth-x:hover{color:var(--text)}
+.auth-brand{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:800;color:var(--text);margin-bottom:18px}
+.auth-logo{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:7px;background:var(--accent);color:#04211f;font-size:11px;font-weight:800}
+.auth-tabs{display:flex;gap:4px;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:3px;margin-bottom:18px}
+.auth-tab{flex:1;padding:8px;border:none;background:none;color:var(--text3);font-family:inherit;font-size:12px;font-weight:600;border-radius:7px;cursor:pointer;transition:all .15s}
+.auth-tab.active{background:var(--accent);color:#04211f}
+.auth-label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin:11px 0 5px}
+.auth-opt{text-transform:none;letter-spacing:0;color:var(--text3);font-weight:400}
+.auth-input{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:11px 13px;color:var(--text);font-family:'Inter Tight',sans-serif;font-size:13px;outline:none;transition:border-color .15s}
+.auth-input:focus{border-color:var(--accent)}
+.auth-submit{width:100%;margin-top:18px;padding:12px;border:none;border-radius:9px;background:var(--accent);color:#04211f;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .15s}
+.auth-submit:hover{opacity:.9}
+.auth-submit:disabled{opacity:.55;cursor:default}
+.auth-msg{font-size:12px;margin-top:13px;min-height:16px;line-height:1.45}
+.auth-msg.err{color:var(--red)}
+.auth-msg.ok{color:var(--green)}
+.auth-guest{display:flex;align-items:center;gap:9px;margin-top:16px;color:var(--text3);font-size:11px}
+.auth-guest::before,.auth-guest::after{content:'';flex:1;height:1px;background:var(--border)}
+.auth-guest-btn{background:none;border:1px solid var(--border);color:var(--text2);padding:6px 13px;border-radius:16px;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
+.auth-guest-btn:hover{border-color:var(--accent);color:var(--accent)}
+.auth-note{font-size:10.5px;color:var(--text3);text-align:center;margin-top:12px;line-height:1.5}
+
+/* History drawer */
+.hist-backdrop{position:fixed;inset:0;background:rgba(3,8,18,.6);backdrop-filter:blur(3px);z-index:390;display:none}
+.hist-backdrop.open{display:block}
+.hist-drawer{position:absolute;top:0;right:0;bottom:0;width:340px;max-width:88vw;background:var(--card);border-left:1px solid var(--border2);padding:20px;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .22s ease;overflow-y:auto}
+.hist-backdrop.open .hist-drawer{transform:translateX(0)}
+.hist-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.hist-title{font-size:15px;font-weight:800;color:var(--text)}
+.hist-x{background:none;border:none;color:var(--text3);font-size:24px;cursor:pointer;line-height:1}
+.hist-x:hover{color:var(--text)}
+.hist-account{font-size:11px;color:var(--text3);padding-bottom:14px;border-bottom:1px solid var(--border);margin-bottom:14px}
+.hist-account b{color:var(--accent);font-weight:600}
+.hist-list{flex:1;display:flex;flex-direction:column;gap:8px}
+.hist-item{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:11px 13px;cursor:pointer;transition:border-color .15s;position:relative}
+.hist-item:hover{border-color:var(--accent)}
+.hist-item-title{font-size:12.5px;font-weight:600;color:var(--text);margin-bottom:4px;padding-right:20px;line-height:1.35;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.hist-item-meta{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.hist-del{position:absolute;top:9px;right:10px;background:none;border:none;color:var(--text3);font-size:15px;cursor:pointer;line-height:1;opacity:0;transition:opacity .15s}
+.hist-item:hover .hist-del{opacity:1}
+.hist-del:hover{color:var(--red)}
+.hist-empty{color:var(--text3);font-size:12px;text-align:center;padding:30px 10px;line-height:1.6}
+.hist-signout{margin-top:14px;padding:10px;border:1px solid var(--border);border-radius:9px;background:none;color:var(--text2);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.hist-signout:hover{border-color:var(--red);color:var(--red)}
+
+/* Save-to-history button on the narrative card */
+.save-btn{flex-shrink:0;display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--text2);cursor:pointer;font-family:'Inter Tight',sans-serif;font-size:11px;font-weight:600;transition:all .16s}
+.save-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.save-btn:hover{border-color:var(--accent);color:var(--accent)}
+.save-btn.saved{border-color:var(--green);color:var(--green)}
+@media(max-width:600px){.acct-btn span{display:none}.acct-btn{padding:7px 9px}}
+
 /* Voice input — mic inside the textarea */
 .ta-wrap{position:relative}
 .ta-wrap .form-textarea{padding-right:48px}
@@ -418,6 +481,10 @@ tr:hover td{background:rgba(255,255,255,.02)}
   </div>
   <div class="nav-right">
     <div class="api-pill" onclick="checkHealth()" style="cursor:pointer" title="Click to re-check the backend"><div class="sdot wait" id="sdot"></div><span id="stext">Connecting</span></div>
+    <button class="acct-btn" id="acctBtn" onclick="onAccountClick()" title="Account">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 14 0v1"/></svg>
+      <span id="acctLabel">Sign in</span>
+    </button>
     <button class="theme-btn" onclick="toggleThemePanel()">Theme</button>
   </div>
 </nav>
@@ -739,6 +806,10 @@ tr:hover td{background:rgba(255,255,255,.02)}
           <div class="nar-head">
             <div class="nar-icon" id="narIcon"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/></svg></div>
             <div style="flex:1;min-width:0"><div class="nar-label" id="narLabel">AI Analysis</div><div class="nar-badge" id="narBadge"></div></div>
+            <button class="save-btn" id="saveBtn" onclick="saveCurrentAnalysis()" title="Save this analysis to your history">
+              <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              <span class="save-label">Save</span>
+            </button>
             <button class="speak-btn" id="speakBtn" onclick="toggleSpeak()" title="Read the analysis aloud" aria-label="Read aloud">
               <svg class="speak-play" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
               <span class="speak-label">Listen</span>
@@ -762,6 +833,58 @@ tr:hover td{background:rgba(255,255,255,.02)}
       <div id="tabActions" style="display:none"><div class="section-head"><div class="section-title">Priority Actions</div><div class="section-line"></div><div class="section-count" id="actionsCount"></div></div><div id="priorityActions"></div></div>
     </div>
   </div>
+</div>
+
+<!-- ── Auth modal ─────────────────────────────────────────────────────────── -->
+<div class="auth-backdrop" id="authBackdrop" onclick="if(event.target===this)closeAuth()">
+  <div class="auth-modal" role="dialog" aria-modal="true">
+    <button class="auth-x" onclick="closeAuth()" aria-label="Close">&times;</button>
+    <div class="auth-brand"><span class="auth-logo">DM</span> DataMind</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">Log in</button>
+      <button class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')">Sign up</button>
+    </div>
+
+    <div class="auth-body" id="authLoginBody">
+      <label class="auth-label">Email</label>
+      <input class="auth-input" id="loginEmail" type="email" autocomplete="email" placeholder="you@example.com">
+      <label class="auth-label">Password</label>
+      <input class="auth-input" id="loginPass" type="password" autocomplete="current-password" placeholder="Your password"
+             onkeydown="if(event.key==='Enter')doLogin()">
+      <button class="auth-submit" id="loginSubmit" onclick="doLogin()">Log in</button>
+    </div>
+
+    <div class="auth-body" id="authRegisterBody" style="display:none">
+      <label class="auth-label">Name <span class="auth-opt">(optional)</span></label>
+      <input class="auth-input" id="regName" type="text" autocomplete="name" placeholder="Nana Kwame">
+      <label class="auth-label">Email</label>
+      <input class="auth-input" id="regEmail" type="email" autocomplete="email" placeholder="you@example.com">
+      <label class="auth-label">Password <span class="auth-opt">(8+ characters)</span></label>
+      <input class="auth-input" id="regPass" type="password" autocomplete="new-password" placeholder="Create a password"
+             onkeydown="if(event.key==='Enter')doRegister()">
+      <button class="auth-submit" id="regSubmit" onclick="doRegister()">Create account</button>
+    </div>
+
+    <div class="auth-msg" id="authMsg"></div>
+    <div class="auth-guest">
+      <span>or</span>
+      <button class="auth-guest-btn" onclick="continueAsGuest()">Continue as guest</button>
+    </div>
+    <div class="auth-note">Guest work is saved and carries over if you sign up later.</div>
+  </div>
+</div>
+
+<!-- ── History drawer ────────────────────────────────────────────────────── -->
+<div class="hist-backdrop" id="histBackdrop" onclick="if(event.target===this)closeHistory()">
+  <aside class="hist-drawer" role="dialog" aria-label="Saved analyses">
+    <div class="hist-head">
+      <div class="hist-title">Saved analyses</div>
+      <button class="hist-x" onclick="closeHistory()" aria-label="Close">&times;</button>
+    </div>
+    <div class="hist-account" id="histAccount"></div>
+    <div class="hist-list" id="histList"></div>
+    <button class="hist-signout" id="histSignout" onclick="signOut()">Sign out</button>
+  </aside>
 </div>
 
 <script>
@@ -879,7 +1002,7 @@ const PROMPTS={
   general:['Main trends in this data?','Any unusual patterns?','What performs well and what not?','Full executive summary'],
 };
 
-window.onload=async()=>{updatePrompts();initVoice();await checkHealth();document.addEventListener('click',e=>{if(!e.target.closest('.theme-panel')&&!e.target.closest('.theme-btn')){document.getElementById('themePanel').classList.remove('open');themePanelOpen=false;}});};
+window.onload=async()=>{updatePrompts();initVoice();initAuth();await checkHealth();document.addEventListener('click',e=>{if(!e.target.closest('.theme-panel')&&!e.target.closest('.theme-btn')){document.getElementById('themePanel').classList.remove('open');themePanelOpen=false;}});};
 
 function switchPage(page,btn){
   stopSpeakOnLeave();
@@ -1067,6 +1190,230 @@ async function loadUrlSheet(name,btn){
   if(t){t.style.borderColor='var(--accent)';t.style.color='var(--accent)';}
   urlStatus('loading',`Loading sheet "${name}"…`);
   await parseUrl(currentUrl,name);
+}
+
+// ── ACCOUNTS & SAVED HISTORY ───────────────────────────────────────────────
+let authToken=null, currentUser=null, savedThisResult=false;
+
+const TOKEN_KEY='datamind_token';
+
+function loadToken(){
+  try{return localStorage.getItem(TOKEN_KEY);}catch(e){return null;}
+}
+function storeToken(tok){
+  authToken=tok;
+  try{tok?localStorage.setItem(TOKEN_KEY,tok):localStorage.removeItem(TOKEN_KEY);}catch(e){}
+}
+function authHeaders(extra){
+  const h=extra||{};
+  if(authToken)h['Authorization']='Bearer '+authToken;
+  return h;
+}
+
+async function initAuth(){
+  authToken=loadToken();
+  if(authToken){
+    // Validate the stored token
+    try{
+      const r=await fetch(getUrl()+'/api/v1/auth/me',{headers:authHeaders()});
+      const d=await r.json();
+      if(d.success){currentUser=d.user;reflectAuth();return;}
+    }catch(e){}
+    storeToken(null);   // stale/invalid
+  }
+  reflectAuth();
+}
+
+function reflectAuth(){
+  const btn=document.getElementById('acctBtn');
+  const label=document.getElementById('acctLabel');
+  if(!btn)return;
+  if(currentUser&&!currentUser.is_guest){
+    btn.classList.add('signed');
+    label.textContent=(currentUser.name||currentUser.email||'Account').split(' ')[0];
+  }else if(currentUser&&currentUser.is_guest){
+    btn.classList.remove('signed');
+    label.textContent='Guest';
+  }else{
+    btn.classList.remove('signed');
+    label.textContent='Sign in';
+  }
+}
+
+// ── Modal open/close ───────────────────────────────────────────────────────
+function onAccountClick(){
+  // Signed in (or guest) → open history; signed out → open auth modal
+  if(currentUser)openHistory();
+  else openAuth();
+}
+function openAuth(){document.getElementById('authBackdrop').classList.add('open');authMsg('');document.getElementById('loginEmail').focus();}
+function closeAuth(){document.getElementById('authBackdrop').classList.remove('open');}
+function switchAuthTab(which){
+  const l=which==='login';
+  document.getElementById('tabLogin').classList.toggle('active',l);
+  document.getElementById('tabRegister').classList.toggle('active',!l);
+  document.getElementById('authLoginBody').style.display=l?'':'none';
+  document.getElementById('authRegisterBody').style.display=l?'none':'';
+  authMsg('');
+}
+function authMsg(msg,kind){
+  const el=document.getElementById('authMsg');
+  el.textContent=msg||'';
+  el.className='auth-msg'+(kind?' '+kind:'');
+}
+
+// ── Login / register / guest ───────────────────────────────────────────────
+async function doLogin(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const pass=document.getElementById('loginPass').value;
+  if(!email||!pass){authMsg('Enter your email and password.','err');return;}
+  const btn=document.getElementById('loginSubmit');btn.disabled=true;btn.textContent='Logging in…';
+  try{
+    const r=await fetch(getUrl()+'/api/v1/auth/login',{method:'POST',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
+    const d=await r.json();
+    if(!d.success){authMsg(d.error||'Login failed.','err');return;}
+    storeToken(d.token);currentUser=d.user;reflectAuth();
+    authMsg('Welcome back!','ok');
+    setTimeout(closeAuth,600);
+    toast('Signed in as '+(currentUser.name||currentUser.email),'ok');
+  }catch(e){authMsg('Could not reach the server.','err');}
+  finally{btn.disabled=false;btn.textContent='Log in';}
+}
+
+async function doRegister(){
+  const name=document.getElementById('regName').value.trim();
+  const email=document.getElementById('regEmail').value.trim();
+  const pass=document.getElementById('regPass').value;
+  if(!email||!pass){authMsg('Enter an email and password.','err');return;}
+  if(pass.length<8){authMsg('Password must be at least 8 characters.','err');return;}
+  const btn=document.getElementById('regSubmit');btn.disabled=true;btn.textContent='Creating…';
+  try{
+    // If currently a guest, pass guest_id so history carries over
+    const body={email,password:pass,name};
+    if(currentUser&&currentUser.is_guest)body.guest_id=currentUser.id;
+    const r=await fetch(getUrl()+'/api/v1/auth/register',{method:'POST',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!d.success){authMsg(d.error||'Sign-up failed.','err');return;}
+    storeToken(d.token);currentUser=d.user;reflectAuth();
+    authMsg(d.upgraded?'Account created — your work is saved!':'Account created!','ok');
+    setTimeout(closeAuth,700);
+    toast('Welcome to DataMind, '+(currentUser.name||'').split(' ')[0]+'!','ok');
+  }catch(e){authMsg('Could not reach the server.','err');}
+  finally{btn.disabled=false;btn.textContent='Create account';}
+}
+
+async function continueAsGuest(){
+  try{
+    const r=await fetch(getUrl()+'/api/v1/auth/guest',{method:'POST'});
+    const d=await r.json();
+    if(!d.success){authMsg('Could not start a guest session.','err');return;}
+    storeToken(d.token);currentUser=d.user;reflectAuth();
+    closeAuth();
+    toast('Continuing as guest — sign up any time to keep your work','ok');
+  }catch(e){authMsg('Could not reach the server.','err');}
+}
+
+async function signOut(){
+  storeToken(null);currentUser=null;reflectAuth();
+  closeHistory();
+  toast('Signed out','ok');
+}
+
+// ── History drawer ─────────────────────────────────────────────────────────
+async function openHistory(){
+  const bd=document.getElementById('histBackdrop');
+  bd.classList.add('open');
+  const acct=document.getElementById('histAccount');
+  if(currentUser&&!currentUser.is_guest)
+    acct.innerHTML=`Signed in as <b>${currentUser.email}</b>`;
+  else
+    acct.innerHTML=`You\u2019re a <b>guest</b>. <button class="auth-guest-btn" style="margin-left:6px" onclick="closeHistory();openAuth();switchAuthTab('register')">Sign up to keep your work</button>`;
+  document.getElementById('histSignout').style.display=currentUser&&!currentUser.is_guest?'':'none';
+  await loadHistory();
+}
+function closeHistory(){document.getElementById('histBackdrop').classList.remove('open');}
+
+async function loadHistory(){
+  const list=document.getElementById('histList');
+  list.innerHTML='<div class="hist-empty">Loading…</div>';
+  try{
+    const r=await fetch(getUrl()+'/api/v1/auth/history?limit=50',{headers:authHeaders()});
+    const d=await r.json();
+    if(!d.success||!d.items||!d.items.length){
+      list.innerHTML='<div class="hist-empty">No saved analyses yet.<br>Run an analysis and tap <strong>Save</strong> to keep it here.</div>';
+      return;
+    }
+    list.innerHTML=d.items.map(it=>{
+      const when=new Date(it.created_at).toLocaleDateString(undefined,{month:'short',day:'numeric'});
+      const dims=(it.row_count!=null?it.row_count+' rows':'')+(it.col_count!=null?' · '+it.col_count+' cols':'');
+      return `<div class="hist-item" onclick="openSaved('${it.id}')">
+        <button class="hist-del" onclick="event.stopPropagation();deleteSaved('${it.id}')" title="Delete">&times;</button>
+        <div class="hist-item-title">${escapeHtml(it.title||it.query||'Untitled')}</div>
+        <div class="hist-item-meta">${when}${dims?' · '+dims:''}${it.industry?' · '+it.industry:''}</div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    list.innerHTML='<div class="hist-empty">Could not load history.</div>';
+  }
+}
+
+function escapeHtml(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+async function openSaved(id){
+  try{
+    const r=await fetch(getUrl()+'/api/v1/auth/history/'+id,{headers:authHeaders()});
+    const d=await r.json();
+    if(!d.success){toast('Could not open that analysis','err');return;}
+    const a=d.analysis;
+    // Rehydrate the narrative + insights view
+    lastResult={narrative:a.narrative,provider:a.provider,metrics:a.metrics||[],insights:a.insights||[],charts:[]};
+    lastQuery=a.query||'';
+    document.getElementById('queryInput').value=a.query||'';
+    if(a.data_preview&&a.data_preview.length){rawData=a.data_preview;filteredData=a.data_preview;}
+    renderAll(lastResult,null,rawData,lastQuery);
+    closeHistory();
+    switchPage('dashboard');
+    toast('Opened: '+(a.title||'saved analysis'),'ok');
+  }catch(e){toast('Could not open that analysis','err');}
+}
+
+async function deleteSaved(id){
+  try{
+    const r=await fetch(getUrl()+'/api/v1/auth/history/'+id,{method:'DELETE',headers:authHeaders()});
+    const d=await r.json();
+    if(d.success){loadHistory();toast('Deleted','ok');}
+    else toast('Could not delete','err');
+  }catch(e){toast('Could not delete','err');}
+}
+
+// ── Save the current analysis ──────────────────────────────────────────────
+async function saveCurrentAnalysis(){
+  if(!lastResult){toast('Run an analysis first','err');return;}
+  if(!currentUser){openAuth();return;}
+  const btn=document.getElementById('saveBtn');
+  if(btn){btn.disabled=true;}
+  try{
+    const payload={
+      query:lastQuery,industry:industry,result:lastResult,
+      row_count:rawData?rawData.length:null,
+      col_count:rawData&&rawData[0]?Object.keys(rawData[0]).length:null,
+      columns:rawData&&rawData[0]?Object.keys(rawData[0]):[],
+      data_preview:rawData?rawData.slice(0,50):[],
+    };
+    const r=await fetch(getUrl()+'/api/v1/auth/history',{method:'POST',
+      headers:authHeaders({'Content-Type':'application/json'}),body:JSON.stringify(payload)});
+    const d=await r.json();
+    if(d.success){
+      savedThisResult=true;
+      if(btn){btn.classList.add('saved');btn.querySelector('.save-label').textContent='Saved';}
+      toast('Saved to your history','ok');
+    }else{
+      toast(d.error||'Could not save','err');
+    }
+  }catch(e){toast('Could not save','err');}
+  finally{if(btn)btn.disabled=false;}
 }
 
 // ── VOICE INPUT ────────────────────────────────────────────────────────────
@@ -1634,6 +1981,9 @@ async function runAnalysis(){
   if(isRunning)return;isRunning=true;lastQuery=q;
   stopSpeakOnLeave();
   setSpeakState(false);
+  savedThisResult=false;
+  const sb=document.getElementById('saveBtn');
+  if(sb){sb.classList.remove('saved');const sl=sb.querySelector('.save-label');if(sl)sl.textContent='Save';}
   const btn=document.getElementById('runBtn');btn.disabled=true;btn.innerHTML='<div class="spin"></div> Analysing...';
   showOv();
   rawData=uploadedData||SAMPLES[industry]||SAMPLES.general;filteredData=[...rawData];
