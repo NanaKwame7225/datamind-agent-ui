@@ -73,6 +73,23 @@ h1,h2,h3,.font-head{font-family:'Inter Tight',sans-serif;font-weight:700;letter-
 .upload-zone{border:1.5px dashed var(--border2);border-radius:var(--r);padding:20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--card2)}
 .upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:rgba(0,200,190,.05)}
 
+/* Voice input — mic inside the textarea */
+.ta-wrap{position:relative}
+.ta-wrap .form-textarea{padding-right:48px}
+.mic-btn{position:absolute;right:9px;bottom:9px;width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:var(--card2);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;padding:0}
+.mic-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.mic-btn:hover{border-color:var(--accent);color:var(--accent)}
+.mic-btn.listening{border-color:var(--red);color:#fff;background:var(--red);animation:micpulse 1.3s ease-in-out infinite}
+@keyframes micpulse{0%,100%{box-shadow:0 0 0 0 rgba(240,64,96,.45)}50%{box-shadow:0 0 0 7px rgba(240,64,96,0)}}
+.mic-hint{font-size:10.5px;color:var(--text3);margin-top:7px;min-height:14px;transition:color .2s}
+.mic-hint.live{color:var(--red);font-weight:600}
+
+/* Read-aloud toggle in the narrative header */
+.speak-btn{flex-shrink:0;display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--text2);cursor:pointer;font-family:'Inter Tight',sans-serif;font-size:11px;font-weight:600;transition:all .18s}
+.speak-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.speak-btn:hover{border-color:var(--accent);color:var(--accent)}
+.speak-btn.speaking{border-color:var(--accent);color:var(--accent);background:rgba(0,200,190,.08)}
+
 /* Load from a link */
 .url-row{margin-top:14px}
 .url-or{display:flex;align-items:center;gap:10px;margin-bottom:11px}
@@ -516,7 +533,13 @@ tr:hover td{background:rgba(255,255,255,.02)}
 
     <div class="analyse-card">
       <div class="analyse-card-title">3 — Ask Your Question</div>
-      <textarea class="form-textarea" id="queryInput" rows="3" placeholder="e.g. How are revenues trending? Flag any anomalies and benchmark against industry standards."></textarea>
+      <div class="ta-wrap">
+        <textarea class="form-textarea" id="queryInput" rows="3" placeholder="e.g. How are revenues trending? Flag any anomalies and benchmark against industry standards."></textarea>
+        <button class="mic-btn" id="micBtn" onclick="toggleMic()" title="Ask by voice" aria-label="Ask by voice">
+          <svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
+        </button>
+      </div>
+      <div class="mic-hint" id="micHint"></div>
       <div class="qprompts" id="qprompts"></div>
     </div>
 
@@ -715,7 +738,11 @@ tr:hover td{background:rgba(255,255,255,.02)}
         <div class="narrative-card" id="narCard" style="display:none">
           <div class="nar-head">
             <div class="nar-icon" id="narIcon"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/></svg></div>
-            <div><div class="nar-label" id="narLabel">AI Analysis</div><div class="nar-badge" id="narBadge"></div></div>
+            <div style="flex:1;min-width:0"><div class="nar-label" id="narLabel">AI Analysis</div><div class="nar-badge" id="narBadge"></div></div>
+            <button class="speak-btn" id="speakBtn" onclick="toggleSpeak()" title="Read the analysis aloud" aria-label="Read aloud">
+              <svg class="speak-play" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+              <span class="speak-label">Listen</span>
+            </button>
           </div>
           <div class="nar-body" id="narText"></div>
         </div>
@@ -852,9 +879,10 @@ const PROMPTS={
   general:['Main trends in this data?','Any unusual patterns?','What performs well and what not?','Full executive summary'],
 };
 
-window.onload=async()=>{updatePrompts();await checkHealth();document.addEventListener('click',e=>{if(!e.target.closest('.theme-panel')&&!e.target.closest('.theme-btn')){document.getElementById('themePanel').classList.remove('open');themePanelOpen=false;}});};
+window.onload=async()=>{updatePrompts();initVoice();await checkHealth();document.addEventListener('click',e=>{if(!e.target.closest('.theme-panel')&&!e.target.closest('.theme-btn')){document.getElementById('themePanel').classList.remove('open');themePanelOpen=false;}});};
 
 function switchPage(page,btn){
+  stopSpeakOnLeave();
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
@@ -865,17 +893,18 @@ function switchPage(page,btn){
   if(page==='forecast'&&(filteredData||rawData))initForecastPage(filteredData||rawData);
 }
 
-async function checkHealth(){
+async function checkHealth(retry){
   const dot=document.getElementById('sdot'),txt=document.getElementById('stext');
-  dot.className='sdot wait'; txt.textContent='Checking';
+  dot.className='sdot wait'; txt.textContent=retry?'Waking server':'Checking';
   try{
-    const r=await fetch(getUrl()+'/health',{signal:AbortSignal.timeout(8000)});
+    // Railway free tier can cold-start slowly, so allow up to 25s.
+    const r=await fetch(getUrl()+'/health',{signal:AbortSignal.timeout(25000)});
     const d=await r.json();
     if(d.status!=='healthy'){dot.className='sdot off';txt.textContent='Error';return;}
     // Backend is up. Now check the parsing libraries.
     dot.className='sdot on'; txt.textContent='Connected';
     try{
-      const hr=await fetch(getUrl()+'/api/v1/upload/health',{signal:AbortSignal.timeout(8000)});
+      const hr=await fetch(getUrl()+'/api/v1/upload/health',{signal:AbortSignal.timeout(15000)});
       const h=await hr.json();
       if(h.all_ready){txt.textContent='Ready';}
       else{
@@ -885,7 +914,12 @@ async function checkHealth(){
         txt.title='Missing on server: '+missing.join(', ');
       }
     }catch{/* upload health not deployed yet — connection is still fine */}
-  }catch{dot.className='sdot off';txt.textContent='Offline';}
+  }catch{
+    // A cold Railway server may miss the first ping. Retry once automatically;
+    // after that the status pill itself is tappable to re-check.
+    if(!retry){setTimeout(()=>checkHealth(true),1500);return;}
+    dot.className='sdot off';txt.textContent='Offline';
+  }
 }
 function getUrl(){return(document.getElementById('apiUrl')?.value||API_DEFAULT).replace(/\/$/,'');}
 function toggleThemePanel(){themePanelOpen=!themePanelOpen;document.getElementById('themePanel').classList.toggle('open',themePanelOpen);}
@@ -1034,6 +1068,215 @@ async function loadUrlSheet(name,btn){
   urlStatus('loading',`Loading sheet "${name}"…`);
   await parseUrl(currentUrl,name);
 }
+
+// ── VOICE INPUT ────────────────────────────────────────────────────────────
+// Two engines so voice works on EVERY device:
+//   1. Web Speech API  — instant, free, on Chrome/Edge/Safari
+//   2. Record + /transcribe — everywhere else (Firefox, in-app browsers, etc.)
+let recog=null, listening=false, voiceBase='';
+let mediaRecorder=null, audioChunks=[], recording=false, voiceMode='none';
+
+function initVoice(){
+  const micBtn=document.getElementById('micBtn');
+  if(!micBtn)return;
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const canRecord=!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia&&window.MediaRecorder);
+
+  if(SR){
+    voiceMode='browser';
+    setupBrowserRecognition(SR);
+  }else if(canRecord){
+    voiceMode='record';        // fall back to server transcription
+  }else{
+    // Truly no way to capture audio (very old browser) — only then hide it.
+    micBtn.style.display='none';
+    return;
+  }
+  micBtn.style.display='';     // always visible when we can do either
+}
+
+function toggleMic(){
+  if(voiceMode==='browser')return toggleBrowserMic();
+  if(voiceMode==='record')return toggleRecordMic();
+}
+
+// ── Engine 1: Web Speech API ───────────────────────────────────────────────
+function setupBrowserRecognition(SR){
+  recog=new SR();
+  recog.continuous=false;
+  recog.interimResults=true;
+  recog.lang=navigator.language||'en-US';
+
+  recog.onstart=()=>{
+    listening=true;
+    setMicListening(true);
+    micHint('Listening… speak your question',true);
+  };
+  recog.onresult=(e)=>{
+    let interim='',final='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const chunk=e.results[i][0].transcript;
+      if(e.results[i].isFinal)final+=chunk; else interim+=chunk;
+    }
+    const ta=document.getElementById('queryInput');
+    const joiner=voiceBase&&!/\s$/.test(voiceBase)?' ':'';
+    ta.value=(voiceBase+joiner+final+interim).replace(/\s+/g,' ').trimStart();
+    if(final)voiceBase=ta.value;
+  };
+  recog.onerror=(e)=>{
+    listening=false; setMicListening(false);
+    if(e.error==='not-allowed'||e.error==='service-not-allowed')
+      micHint('Microphone blocked. Allow mic access in your browser settings.');
+    else if(e.error==='no-speech')
+      micHint('Didn\u2019t catch that — tap the mic and try again.');
+    else if(e.error==='network')
+      micHint('Voice needs a network connection — trying again may help.');
+    else micHint('');
+  };
+  recog.onend=()=>{
+    listening=false; setMicListening(false);
+    const ta=document.getElementById('queryInput');
+    micHint(ta.value.trim()?'Got it. Edit if needed, then Run Elite Analysis.':'');
+  };
+}
+
+function toggleBrowserMic(){
+  if(!recog)return;
+  if(listening){recog.stop();return;}
+  voiceBase=document.getElementById('queryInput').value;
+  try{recog.start();}
+  catch(err){micHint('Could not start voice input — try again.');}
+}
+
+// ── Engine 2: record + server transcription ────────────────────────────────
+async function toggleRecordMic(){
+  if(recording){stopRecording();return;}
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    audioChunks=[];
+    const mime=pickAudioMime();
+    mediaRecorder=new MediaRecorder(stream, mime?{mimeType:mime}:undefined);
+    mediaRecorder.ondataavailable=e=>{if(e.data&&e.data.size)audioChunks.push(e.data);};
+    mediaRecorder.onstop=async()=>{
+      stream.getTracks().forEach(t=>t.stop());
+      setMicListening(false); recording=false;
+      const blob=new Blob(audioChunks,{type:mediaRecorder.mimeType||mime||'audio/webm'});
+      if(!blob.size){micHint('No audio captured — try again.');return;}
+      await sendForTranscription(blob);
+    };
+    mediaRecorder.start();
+    recording=true;
+    setMicListening(true);
+    micHint('Recording… tap the mic again when you\u2019re done',true);
+  }catch(err){
+    if(err&&err.name==='NotAllowedError')
+      micHint('Microphone blocked. Allow mic access in your browser settings.');
+    else
+      micHint('Could not access the microphone on this device.');
+  }
+}
+
+function stopRecording(){
+  if(mediaRecorder&&recording){
+    micHint('Transcribing…');
+    try{mediaRecorder.stop();}catch(e){recording=false;setMicListening(false);}
+  }
+}
+
+function pickAudioMime(){
+  const types=['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/mp4','audio/aac'];
+  for(const t of types) if(window.MediaRecorder&&MediaRecorder.isTypeSupported(t))return t;
+  return '';
+}
+
+async function sendForTranscription(blob){
+  const ta=document.getElementById('queryInput');
+  voiceBase=ta.value;
+  try{
+    const fd=new FormData();
+    fd.append('audio',blob,'question.'+(blob.type.includes('mp4')?'mp4':blob.type.includes('ogg')?'ogg':'webm'));
+    fd.append('mime',blob.type||'audio/webm');
+    const r=await fetch(getUrl()+'/api/v1/transcribe',{method:'POST',body:fd});
+    const res=await r.json().catch(()=>({success:false,error:'The server returned an invalid response.'}));
+    if(!res.success){
+      micHint(res.error||'Could not transcribe that.',res.hint);
+      return;
+    }
+    const spoken=(res.text||'').trim();
+    if(!spoken){micHint('Didn\u2019t catch any words — try again.');return;}
+    const joiner=voiceBase&&!/\s$/.test(voiceBase)?' ':'';
+    ta.value=(voiceBase+joiner+spoken).replace(/\s+/g,' ').trimStart();
+    micHint('Got it. Edit if needed, then Run Elite Analysis.');
+  }catch(err){
+    micHint('Could not reach the server to transcribe. Check your connection.');
+  }
+}
+
+// ── shared UI helpers ──────────────────────────────────────────────────────
+function setMicListening(on){
+  const b=document.getElementById('micBtn');
+  if(!b)return;
+  b.classList.toggle('listening',on);
+  b.title=on?'Stop':'Ask by voice';
+}
+
+function micHint(msg,live){
+  const el=document.getElementById('micHint');
+  if(!el)return;
+  el.textContent=msg||'';
+  el.className='mic-hint'+(live?' live':'');
+}
+
+// ── READ ALOUD (Speech Synthesis) ──────────────────────────────────────────
+let speaking=false;
+
+function speakSupported(){return 'speechSynthesis' in window;}
+
+function toggleSpeak(){
+  const btn=document.getElementById('speakBtn');
+  if(!speakSupported()){
+    if(btn)btn.style.display='none';
+    return;
+  }
+  if(speaking){stopSpeak();return;}
+
+  const raw=document.getElementById('narText').innerText||'';
+  const text=cleanForSpeech(raw);
+  if(!text.trim()){toast('Nothing to read yet','err');return;}
+
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.rate=1.02; u.pitch=1.0; u.lang=navigator.language||'en-US';
+  u.onend=()=>setSpeakState(false);
+  u.onerror=()=>setSpeakState(false);
+  window.speechSynthesis.speak(u);
+  setSpeakState(true);
+}
+
+function stopSpeak(){
+  if(speakSupported())window.speechSynthesis.cancel();
+  setSpeakState(false);
+}
+
+function setSpeakState(on){
+  speaking=on;
+  const btn=document.getElementById('speakBtn');
+  if(!btn)return;
+  btn.classList.toggle('speaking',on);
+  btn.querySelector('.speak-label').textContent=on?'Stop':'Listen';
+}
+
+function cleanForSpeech(t){
+  // Strip markdown artefacts and section numbers so it reads naturally
+  return t.replace(/[#*_`>]/g,'')
+          .replace(/\s*\n\s*/g,'. ')
+          .replace(/\.\s*\.\s*/g,'. ')
+          .replace(/\s{2,}/g,' ')
+          .trim();
+}
+
+// Stop any narration when a new analysis begins or the tab changes
+function stopSpeakOnLeave(){ if(speaking)stopSpeak(); }
 
 // Find a child by attribute value without CSS.escape, which is unavailable in
 // some browsers and throws on names containing quotes or spaces.
@@ -1389,6 +1632,8 @@ async function runAnalysis(){
   const q=document.getElementById('queryInput').value.trim();
   if(!q){toast('Enter a question first','err');return;}
   if(isRunning)return;isRunning=true;lastQuery=q;
+  stopSpeakOnLeave();
+  setSpeakState(false);
   const btn=document.getElementById('runBtn');btn.disabled=true;btn.innerHTML='<div class="spin"></div> Analysing...';
   showOv();
   rawData=uploadedData||SAMPLES[industry]||SAMPLES.general;filteredData=[...rawData];
