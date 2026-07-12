@@ -506,7 +506,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
     <div class="ov-step active" id="ovs1"><div class="ov-step-dot"></div>Cleaning and preparing your data</div>
     <div class="ov-step" id="ovs2"><div class="ov-step-dot"></div>Running statistical analysis</div>
     <div class="ov-step" id="ovs3"><div class="ov-step-dot"></div>Building query-aware charts</div>
-    <div class="ov-step" id="ovs4"><div class="ov-step-dot"></div>Claude writing elite recommendations</div>
+    <div class="ov-step" id="ovs4"><div class="ov-step-dot"></div>Writing elite recommendations</div>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -1354,8 +1354,8 @@ function schedMsg(m,kind){
 
 async function createSchedule(){
   if(!currentUser){openAuth();return;}
-  const data=uploadedData||rawData;
-  if(!data||!data.length){schedMsg('Upload data on the Analyse page first.','err');return;}
+  const data=(uploadedData&&uploadedData.length?uploadedData:null)||(rawData&&rawData.length?rawData:null);
+  if(!data||!data.length){schedMsg('Upload data on the Analyse page and run an analysis first — a schedule needs data to run on.','err');return;}
   const query=document.getElementById('schedQuery').value.trim();
   if(!query){schedMsg('Add the question the report should answer.','err');return;}
 
@@ -2334,17 +2334,31 @@ async function runAnalysis(){
   const payload={query:q,industry,provider:'anthropic',inline_data:rawData,enable_viz:true,enable_anomaly_detection:true,enable_forecast:rawData.length>=20,conversation_history:[],session_id:sessionId};
   try{
     setTimeout(()=>stepOv(2),1200);setTimeout(()=>stepOv(3),3000);setTimeout(()=>stepOv(4),5000);
-    const r=await fetch(getUrl()+'/api/v1/analysis/analyse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    // If the backend is slow (cold start / LLM chain), tell the user rather than
+    // spinning silently — and cap the wait so we fall back to local analysis.
+    const slowNote=setTimeout(()=>{
+      const sub=document.getElementById('ovSub');
+      if(sub)sub.textContent='Taking longer than usual — the server may be waking up…';
+    },9000);
+    const r=await fetch(getUrl()+'/api/v1/analysis/analyse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:AbortSignal.timeout(45000)});
+    clearTimeout(slowNote);
     if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.detail||e.error||'HTTP '+r.status);}
     lastResult=await r.json();
     let finResult=null;
-    if(industry==='finance'){try{const fr=await fetch(getUrl()+'/api/v1/finance/full',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:rawData,query:q,provider:'anthropic',generate_narrative:false})});if(fr.ok)finResult=await fr.json();}catch(fe){console.warn(fe);}}
+    if(industry==='finance'){try{const fr=await fetch(getUrl()+'/api/v1/finance/full',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:rawData,query:q,provider:'anthropic',generate_narrative:false}),signal:AbortSignal.timeout(30000)});if(fr.ok)finResult=await fr.json();}catch(fe){console.warn(fe);}}
     lastFinanceResult=finResult;
     hideOv();
     renderAll(lastResult,finResult,rawData,q);
     toast('Analysis complete — '+getProviderLabel(lastResult.provider),'ok');
     switchPage('dashboard');
-  }catch(err){hideOv();toast('Local analysis — '+err.message.substring(0,38),'err');lastResult=buildLocal(rawData,q,industry);renderAll(lastResult,null,rawData,q);switchPage('dashboard');}
+  }catch(err){
+    hideOv();
+    const msg=err&&err.name==='TimeoutError'
+      ? 'Server slow — showing local analysis'
+      : 'Local analysis — '+String(err.message||err).substring(0,38);
+    toast(msg,'err');
+    lastResult=buildLocal(rawData,q,industry);renderAll(lastResult,null,rawData,q);switchPage('dashboard');
+  }
   isRunning=false;btn.disabled=false;btn.innerHTML='Run Elite Analysis';
 }
 
@@ -3077,7 +3091,7 @@ function exportCSV(){const data=filteredData||rawData;if(!data||!data.length){to
 
 let ovStep=0;
 function showOv(){ovStep=0;stepOv(1);document.getElementById('overlay').classList.add('on');}
-function stepOv(n){for(let i=1;i<=4;i++){const e=document.getElementById('ovs'+i);if(e)e.classList.toggle('active',i===n);}const t=['','Cleaning your data','Running the numbers','Building query-aware charts','Claude writing elite insights'];const s=['','Checking quality and filling gaps','Statistical analysis and pattern detection','Interactive visualisations for your query','Writing recommendations grounded in your data'];if(t[n]){document.getElementById('ovTitle').textContent=t[n];document.getElementById('ovSub').textContent=s[n];}}
+function stepOv(n){for(let i=1;i<=4;i++){const e=document.getElementById('ovs'+i);if(e)e.classList.toggle('active',i===n);}const t=['','Cleaning your data','Running the numbers','Building query-aware charts','Writing elite insights'];const s=['','Checking quality and filling gaps','Statistical analysis and pattern detection','Interactive visualisations for your query','Writing recommendations grounded in your data'];if(t[n]){document.getElementById('ovTitle').textContent=t[n];document.getElementById('ovSub').textContent=s[n];}}
 function hideOv(){document.getElementById('overlay').classList.remove('on');}
 function toast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type+' on';setTimeout(()=>t.classList.remove('on'),4000);}
 
