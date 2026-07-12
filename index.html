@@ -129,11 +129,67 @@ h1,h2,h3,.font-head{font-family:'Inter Tight',sans-serif;font-weight:700;letter-
 .hist-signout{margin-top:14px;padding:10px;border:1px solid var(--border);border-radius:9px;background:none;color:var(--text2);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
 .hist-signout:hover{border-color:var(--red);color:var(--red)}
 
+/* Version history */
+.hist-vbadge{display:inline-block;margin-left:7px;font-size:9px;font-family:'JetBrains Mono',monospace;background:var(--accent);color:#04211f;padding:1px 6px;border-radius:10px;font-weight:700;cursor:pointer;vertical-align:middle}
+.hist-vbadge:hover{opacity:.85}
+.ver-back{background:none;border:none;color:var(--accent);font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;padding:0 0 10px}
+.ver-head{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);padding-bottom:10px;border-bottom:1px solid var(--border);margin-bottom:10px}
+.ver-item{display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:9px 11px;margin-bottom:7px}
+.ver-main{flex:1;min-width:0;cursor:pointer}
+.ver-main:hover .ver-num{color:var(--accent)}
+.ver-num{font-size:12px;font-weight:600;color:var(--text);margin-bottom:3px}
+.ver-current{font-size:8px;background:var(--green);color:#04211f;padding:1px 5px;border-radius:8px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-left:4px}
+.ver-meta{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.ver-actions{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.ver-btn{background:none;border:1px solid var(--border);color:var(--text2);font-family:inherit;font-size:10px;font-weight:600;padding:4px 9px;border-radius:7px;cursor:pointer;transition:all .15s}
+.ver-btn:hover{border-color:var(--accent);color:var(--accent)}
+.ver-btn.del{padding:4px 8px;font-size:14px;line-height:1}
+.ver-btn.del:hover{border-color:var(--red);color:var(--red)}
+
+/* Save choice popover */
+.save-choice{position:absolute;background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:8px;box-shadow:0 12px 34px rgba(0,0,0,.4);z-index:420;min-width:230px}
+.save-choice-opt{display:block;width:100%;text-align:left;background:none;border:none;color:var(--text);font-family:inherit;font-size:12px;padding:10px 11px;border-radius:8px;cursor:pointer;transition:background .12s}
+.save-choice-opt:hover{background:var(--card2)}
+.save-choice-opt b{display:block;font-weight:600;margin-bottom:2px}
+.save-choice-opt span{font-size:10.5px;color:var(--text3);line-height:1.4}
+
 /* Save-to-history button on the narrative card */
 .save-btn{flex-shrink:0;display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--text2);cursor:pointer;font-family:'Inter Tight',sans-serif;font-size:11px;font-weight:600;transition:all .16s}
 .save-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .save-btn:hover{border-color:var(--accent);color:var(--accent)}
 .save-btn.saved{border-color:var(--green);color:var(--green)}
+
+/* Scheduled reports page */
+.sched-layout{max-width:820px;margin:0 auto;padding:32px 24px;width:100%}
+.sched-hero{text-align:center;margin-bottom:24px;min-width:0}
+.sched-hero h1{font-size:30px;font-weight:800;letter-spacing:-.03em;margin-bottom:8px}
+.sched-hero p{color:var(--text2);font-size:14px;max-width:520px;margin:0 auto;line-height:1.6}
+.sched-note{background:rgba(240,160,32,.08);border:1px solid rgba(240,160,32,.25);color:var(--warn);font-size:12px;padding:10px 13px;border-radius:9px;margin-bottom:14px}
+.sched-row{display:flex;gap:12px;flex-wrap:wrap}
+.sched-row>div{min-width:120px}
+.sched-channels{display:flex;flex-direction:column;gap:9px;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:13px}
+.sched-chan{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer}
+.sched-chan span{color:var(--text3);font-size:11px}
+.sched-chan input[type=checkbox]{width:15px;height:15px;accent-color:var(--accent)}
+.sched-chan-input{margin-left:23px;max-width:280px}
+.sched-chan-note{font-size:10.5px;color:var(--text3);margin-top:2px}
+.sched-list{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.sched-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:15px 17px;display:flex;align-items:flex-start;gap:14px}
+.sched-card.paused{opacity:.6}
+.sched-card-main{flex:1;min-width:0}
+.sched-card-name{font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px}
+.sched-card-q{font-size:12px;color:var(--text2);margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sched-card-meta{display:flex;flex-wrap:wrap;gap:6px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--text3)}
+.sched-chip{background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:2px 7px}
+.sched-chip.next{color:var(--accent);border-color:rgba(0,200,190,.3)}
+.sched-chip.email{color:var(--info)}
+.sched-chip.sms{color:var(--green)}
+.sched-card-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+.sched-act{background:none;border:1px solid var(--border);color:var(--text2);font-family:inherit;font-size:10px;font-weight:600;padding:5px 10px;border-radius:7px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.sched-act:hover{border-color:var(--accent);color:var(--accent)}
+.sched-act.del:hover{border-color:var(--red);color:var(--red)}
+.sched-empty{text-align:center;color:var(--text3);font-size:13px;padding:36px 16px;line-height:1.6}
+@media(max-width:600px){.sched-card{flex-direction:column}.sched-card-actions{flex-direction:row;flex-wrap:wrap}}
 @media(max-width:600px){.acct-btn span{display:none}.acct-btn{padding:7px 9px}}
 
 /* Voice input — mic inside the textarea */
@@ -478,6 +534,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
     <button class="nav-tab" data-page="sql" onclick="switchPage('sql',this)"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg><span>SQL Studio</span></button>
     <button class="nav-tab" data-page="forecast" onclick="switchPage('forecast',this)"><svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg><span>Forecast</span></button>
     <button class="nav-tab" data-page="insights" onclick="switchPage('insights',this)"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.5.5 1 1.3 1 2.3h6c0-1 .5-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg><span>Insights</span></button>
+    <button class="nav-tab" data-page="scheduled" onclick="switchPage('scheduled',this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg><span>Scheduled</span></button>
   </div>
   <div class="nav-right">
     <div class="api-pill" onclick="checkHealth()" style="cursor:pointer" title="Click to re-check the backend"><div class="sdot wait" id="sdot"></div><span id="stext">Connecting</span></div>
@@ -835,7 +892,72 @@ tr:hover td{background:rgba(255,255,255,.02)}
   </div>
 </div>
 
-<!-- ── Auth modal ─────────────────────────────────────────────────────────── -->
+<!-- SCHEDULED REPORTS PAGE -->
+<div class="page" id="page-scheduled">
+  <div class="content-wrap">
+    <div class="sched-layout">
+      <div class="sched-hero">
+        <h1>Scheduled <span class="font-serif">reports</span></h1>
+        <p>Run an analysis automatically — daily, weekly, or monthly — and get it in-app, by email, or by SMS.</p>
+      </div>
+
+      <div class="analyse-card">
+        <div class="analyse-card-title">New scheduled report</div>
+        <div id="schedNeedData" class="sched-note" style="display:none">Upload data on the Analyse page first — a schedule needs data to run on.</div>
+
+        <label class="auth-label">Report name</label>
+        <input class="auth-input" id="schedName" placeholder="e.g. Weekly revenue summary">
+
+        <label class="auth-label">Question to answer</label>
+        <input class="auth-input" id="schedQuery" placeholder="e.g. How is revenue trending? Flag anomalies.">
+
+        <div class="sched-row">
+          <div style="flex:1">
+            <label class="auth-label">How often</label>
+            <select class="slicer-select" id="schedFreq" onchange="onFreqChange()" style="width:100%">
+              <option value="daily">Daily</option>
+              <option value="weekly" selected>Weekly</option>
+              <option value="monthly">Monthly</option>
+            </select>
+          </div>
+          <div id="schedWeekdayWrap" style="flex:1">
+            <label class="auth-label">Day</label>
+            <select class="slicer-select" id="schedWeekday" style="width:100%">
+              <option value="monday">Monday</option><option value="tuesday">Tuesday</option>
+              <option value="wednesday">Wednesday</option><option value="thursday">Thursday</option>
+              <option value="friday">Friday</option><option value="saturday">Saturday</option>
+              <option value="sunday">Sunday</option>
+            </select>
+          </div>
+          <div id="schedDayWrap" style="flex:1;display:none">
+            <label class="auth-label">Day of month</label>
+            <input class="auth-input" id="schedDay" type="number" min="1" max="28" value="1">
+          </div>
+          <div style="flex:1">
+            <label class="auth-label">Time</label>
+            <input class="auth-input" id="schedTime" type="time" value="08:00">
+          </div>
+        </div>
+
+        <label class="auth-label" style="margin-top:14px">Deliver via</label>
+        <div class="sched-channels">
+          <label class="sched-chan"><input type="checkbox" checked disabled> In-app <span>(always saved to history)</span></label>
+          <label class="sched-chan"><input type="checkbox" id="chanEmail" onchange="toggleChan('email')"> Email</label>
+          <input class="auth-input sched-chan-input" id="chanEmailTo" placeholder="you@example.com" style="display:none">
+          <label class="sched-chan"><input type="checkbox" id="chanSms" onchange="toggleChan('sms')"> SMS</label>
+          <input class="auth-input sched-chan-input" id="chanSmsTo" placeholder="+233 55 xxx xxxx" style="display:none">
+          <div class="sched-chan-note" id="chanNote"></div>
+        </div>
+
+        <button class="auth-submit" id="schedCreate" onclick="createSchedule()" style="margin-top:18px">Schedule report</button>
+        <div class="auth-msg" id="schedMsg"></div>
+      </div>
+
+      <div class="section-head"><div class="section-title">Your schedules</div><div class="section-line"></div><div class="section-count" id="schedCount"></div></div>
+      <div id="schedList" class="sched-list"></div>
+    </div>
+  </div>
+</div>
 <div class="auth-backdrop" id="authBackdrop" onclick="if(event.target===this)closeAuth()">
   <div class="auth-modal" role="dialog" aria-modal="true">
     <button class="auth-x" onclick="closeAuth()" aria-label="Close">&times;</button>
@@ -1014,6 +1136,7 @@ function switchPage(page,btn){
   window.scrollTo(0,0);
   if(page==='dashboard'&&lastResult)setTimeout(()=>{if(filteredData)rebuildCharts(filteredData);},50);
   if(page==='forecast'&&(filteredData||rawData))initForecastPage(filteredData||rawData);
+  if(page==='scheduled')initScheduledPage();
 }
 
 async function checkHealth(retry){
@@ -1192,6 +1315,167 @@ async function loadUrlSheet(name,btn){
   await parseUrl(currentUrl,name);
 }
 
+// ── SCHEDULED REPORTS ──────────────────────────────────────────────────────
+let channelStatus={email:false,sms:false};
+
+function onFreqChange(){
+  const f=document.getElementById('schedFreq').value;
+  document.getElementById('schedWeekdayWrap').style.display=f==='weekly'?'':'none';
+  document.getElementById('schedDayWrap').style.display=f==='monthly'?'':'none';
+}
+
+function toggleChan(which){
+  const on=document.getElementById(which==='email'?'chanEmail':'chanSms').checked;
+  document.getElementById(which==='email'?'chanEmailTo':'chanSmsTo').style.display=on?'':'none';
+  // Warn if channel isn't configured on the server
+  const note=document.getElementById('chanNote');
+  if(on&&which==='email'&&!channelStatus.email)
+    note.textContent='Email isn\u2019t set up on the server yet — this report will still save in-app.';
+  else if(on&&which==='sms'&&!channelStatus.sms)
+    note.textContent='SMS isn\u2019t set up on the server yet — this report will still save in-app.';
+  else note.textContent='';
+}
+
+async function initScheduledPage(){
+  // Check which channels are live
+  try{
+    const r=await fetch(getUrl()+'/api/v1/schedules/channels');
+    channelStatus=await r.json();
+  }catch(e){}
+  // Warn if no data loaded
+  document.getElementById('schedNeedData').style.display=(uploadedData&&uploadedData.length)?'none':'';
+  loadSchedules();
+}
+
+function schedMsg(m,kind){
+  const el=document.getElementById('schedMsg');
+  el.textContent=m||'';el.className='auth-msg'+(kind?' '+kind:'');
+}
+
+async function createSchedule(){
+  if(!currentUser){openAuth();return;}
+  const data=uploadedData||rawData;
+  if(!data||!data.length){schedMsg('Upload data on the Analyse page first.','err');return;}
+  const query=document.getElementById('schedQuery').value.trim();
+  if(!query){schedMsg('Add the question the report should answer.','err');return;}
+
+  const freq=document.getElementById('schedFreq').value;
+  const [hh,mm]=(document.getElementById('schedTime').value||'08:00').split(':').map(Number);
+  const channels={
+    email:document.getElementById('chanEmail').checked,
+    email_to:document.getElementById('chanEmailTo').value.trim(),
+    sms:document.getElementById('chanSms').checked,
+    sms_to:document.getElementById('chanSmsTo').value.trim(),
+  };
+  const body={
+    name:document.getElementById('schedName').value.trim()||query,
+    query, industry:industry||'general',
+    data:data.slice(0,5000),
+    columns:data[0]?Object.keys(data[0]):[],
+    frequency:freq, hour:hh, minute:mm,
+    weekday:document.getElementById('schedWeekday').value,
+    day:parseInt(document.getElementById('schedDay').value||'1'),
+    channels,
+  };
+  const btn=document.getElementById('schedCreate');btn.disabled=true;btn.textContent='Scheduling…';
+  try{
+    const r=await fetch(getUrl()+'/api/v1/schedules',{method:'POST',
+      headers:authHeaders({'Content-Type':'application/json'}),body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!d.success){schedMsg(d.error||'Could not create schedule.','err');return;}
+    schedMsg('Scheduled! First run '+fmtWhen(d.next_run),'ok');
+    document.getElementById('schedName').value='';
+    document.getElementById('schedQuery').value='';
+    loadSchedules();
+    toast('Report scheduled','ok');
+  }catch(e){schedMsg('Could not reach the server.','err');}
+  finally{btn.disabled=false;btn.textContent='Schedule report';}
+}
+
+function fmtWhen(iso){
+  if(!iso)return 'soon';
+  const d=new Date(iso);
+  return d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})+
+    ' at '+d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});
+}
+
+async function loadSchedules(){
+  const list=document.getElementById('schedList');
+  if(!currentUser){list.innerHTML='<div class="sched-empty">Sign in to create and manage scheduled reports.</div>';document.getElementById('schedCount').textContent='';return;}
+  list.innerHTML='<div class="sched-empty">Loading…</div>';
+  try{
+    const r=await fetch(getUrl()+'/api/v1/schedules',{headers:authHeaders()});
+    const d=await r.json();
+    if(!d.success||!d.items.length){
+      list.innerHTML='<div class="sched-empty">No scheduled reports yet.<br>Fill in the form above to create your first.</div>';
+      document.getElementById('schedCount').textContent='';
+      return;
+    }
+    document.getElementById('schedCount').textContent=d.items.length+' schedule'+(d.items.length!==1?'s':'');
+    list.innerHTML=d.items.map(s=>{
+      const ch=s.channels||{};
+      const chips=[
+        `<span class="sched-chip next">next: ${fmtWhen(s.next_run)}</span>`,
+        `<span class="sched-chip">${s.frequency}</span>`,
+        `<span class="sched-chip">${s.row_count} rows</span>`,
+        ch.email?`<span class="sched-chip email">email</span>`:'',
+        ch.sms?`<span class="sched-chip sms">SMS</span>`:'',
+        s.run_count?`<span class="sched-chip">ran ${s.run_count}×</span>`:'',
+        s.last_status&&s.last_status!=='ok'?`<span class="sched-chip" style="color:var(--red)">${s.last_status}</span>`:'',
+      ].filter(Boolean).join('');
+      return `<div class="sched-card ${s.active?'':'paused'}">
+        <div class="sched-card-main">
+          <div class="sched-card-name">${escapeHtml(s.name)}${s.active?'':' <span style="font-size:10px;color:var(--text3)">(paused)</span>'}</div>
+          <div class="sched-card-q">${escapeHtml(s.query)}</div>
+          <div class="sched-card-meta">${chips}</div>
+        </div>
+        <div class="sched-card-actions">
+          <button class="sched-act" onclick="runScheduleNow('${s.id}')">Run now</button>
+          <button class="sched-act" onclick="toggleSchedule('${s.id}',${s.active?'false':'true'})">${s.active?'Pause':'Resume'}</button>
+          <button class="sched-act del" onclick="deleteSchedule('${s.id}')">Delete</button>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){list.innerHTML='<div class="sched-empty">Could not load schedules.</div>';}
+}
+
+async function runScheduleNow(id){
+  toast('Running report…','ok');
+  try{
+    const r=await fetch(getUrl()+'/api/v1/schedules/'+id+'/run',{method:'POST',headers:authHeaders()});
+    const d=await r.json();
+    if(d.success){
+      const parts=[];
+      if(d.delivered&&d.delivered.in_app)parts.push('saved to history');
+      if(d.delivered&&d.delivered.email)parts.push(d.delivered.email.success?'emailed':'email failed');
+      if(d.delivered&&d.delivered.sms)parts.push(d.delivered.sms.success?'texted':'SMS failed');
+      toast('Report ran — '+(parts.join(', ')||'done'),'ok');
+      loadSchedules();
+    }else toast(d.error||'Run failed','err');
+  }catch(e){toast('Could not run report','err');}
+}
+
+async function toggleSchedule(id,active){
+  try{
+    const r=await fetch(getUrl()+'/api/v1/schedules/'+id,{method:'PATCH',
+      headers:authHeaders({'Content-Type':'application/json'}),body:JSON.stringify({active:active})});
+    const d=await r.json();
+    if(d.success){loadSchedules();toast(active?'Resumed':'Paused','ok');}
+    else toast(d.error||'Could not update','err');
+  }catch(e){toast('Could not update','err');}
+}
+
+async function deleteSchedule(id){
+  try{
+    const r=await fetch(getUrl()+'/api/v1/schedules/'+id,{method:'DELETE',headers:authHeaders()});
+    const d=await r.json();
+    if(d.success){loadSchedules();toast('Schedule deleted','ok');}
+    else toast('Could not delete','err');
+  }catch(e){toast('Could not delete','err');}
+}
+
+// ── SCHEDULED REPORTS end ──────────────────────────────────────────────────
+
 // ── ACCOUNTS & SAVED HISTORY ───────────────────────────────────────────────
 let authToken=null, currentUser=null, savedThisResult=false;
 
@@ -1346,11 +1630,12 @@ async function loadHistory(){
       return;
     }
     list.innerHTML=d.items.map(it=>{
-      const when=new Date(it.created_at).toLocaleDateString(undefined,{month:'short',day:'numeric'});
+      const when=new Date(it.updated_at||it.created_at).toLocaleDateString(undefined,{month:'short',day:'numeric'});
       const dims=(it.row_count!=null?it.row_count+' rows':'')+(it.col_count!=null?' · '+it.col_count+' cols':'');
+      const vc=it.version_count>1?`<span class="hist-vbadge" onclick="event.stopPropagation();openVersions('${it.id}')" title="${it.version_count} versions">v${it.version_count}</span>`:'';
       return `<div class="hist-item" onclick="openSaved('${it.id}')">
         <button class="hist-del" onclick="event.stopPropagation();deleteSaved('${it.id}')" title="Delete">&times;</button>
-        <div class="hist-item-title">${escapeHtml(it.title||it.query||'Untitled')}</div>
+        <div class="hist-item-title">${escapeHtml(it.title||it.query||'Untitled')}${vc}</div>
         <div class="hist-item-meta">${when}${dims?' · '+dims:''}${it.industry?' · '+it.industry:''}</div>
       </div>`;
     }).join('');
@@ -1361,9 +1646,10 @@ async function loadHistory(){
 
 function escapeHtml(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 
-async function openSaved(id){
+async function openSaved(id,versionId){
   try{
-    const r=await fetch(getUrl()+'/api/v1/auth/history/'+id,{headers:authHeaders()});
+    const url=getUrl()+'/api/v1/auth/history/'+id+(versionId?'?version_id='+versionId:'');
+    const r=await fetch(url,{headers:authHeaders()});
     const d=await r.json();
     if(!d.success){toast('Could not open that analysis','err');return;}
     const a=d.analysis;
@@ -1388,12 +1674,66 @@ async function deleteSaved(id){
   }catch(e){toast('Could not delete','err');}
 }
 
+// ── Version timeline ───────────────────────────────────────────────────────
+let versionsForId=null;
+
+async function openVersions(id){
+  versionsForId=id;
+  const list=document.getElementById('histList');
+  list.innerHTML='<div class="hist-empty">Loading versions…</div>';
+  try{
+    const r=await fetch(getUrl()+'/api/v1/auth/history/'+id+'/versions',{headers:authHeaders()});
+    const d=await r.json();
+    if(!d.success||!d.versions.length){list.innerHTML='<div class="hist-empty">No versions.</div>';return;}
+    const rows=d.versions.map(v=>{
+      const when=new Date(v.created_at).toLocaleString(undefined,{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+      const dims=(v.row_count!=null?v.row_count+' rows':'')+(v.col_count!=null?' · '+v.col_count+' cols':'');
+      const latest=v.number===d.total;
+      return `<div class="ver-item">
+        <div class="ver-main" onclick="openSaved('${id}','${v.version_id}')">
+          <div class="ver-num">Version ${v.number}${latest?' <span class="ver-current">current</span>':''}</div>
+          <div class="ver-meta">${when}${dims?' · '+dims:''}</div>
+        </div>
+        <div class="ver-actions">
+          ${!latest?`<button class="ver-btn" onclick="event.stopPropagation();restoreVersion('${id}','${v.version_id}')" title="Make this the current version">Restore</button>`:''}
+          ${d.total>1?`<button class="ver-btn del" onclick="event.stopPropagation();deleteVersion('${id}','${v.version_id}')" title="Delete this version">&times;</button>`:''}
+        </div>
+      </div>`;
+    }).join('');
+    list.innerHTML=`<button class="ver-back" onclick="loadHistory()">← All analyses</button>
+      <div class="ver-head">${escapeHtml(d.title||'Versions')} · ${d.total} version${d.total!==1?'s':''}</div>${rows}`;
+  }catch(e){list.innerHTML='<div class="hist-empty">Could not load versions.</div>';}
+}
+
+async function restoreVersion(id,vid){
+  try{
+    const r=await fetch(getUrl()+'/api/v1/auth/history/'+id+'/restore/'+vid,{method:'POST',headers:authHeaders()});
+    const d=await r.json();
+    if(d.success){toast('Version restored as current','ok');openVersions(id);}
+    else toast(d.error||'Could not restore','err');
+  }catch(e){toast('Could not restore','err');}
+}
+
+async function deleteVersion(id,vid){
+  try{
+    const r=await fetch(getUrl()+'/api/v1/auth/history/'+id+'/version/'+vid,{method:'DELETE',headers:authHeaders()});
+    const d=await r.json();
+    if(d.success){toast('Version deleted','ok');openVersions(id);}
+    else toast(d.error||'Could not delete version','err');
+  }catch(e){toast('Could not delete version','err');}
+}
+
 // ── Save the current analysis ──────────────────────────────────────────────
 async function saveCurrentAnalysis(){
   if(!lastResult){toast('Run an analysis first','err');return;}
   if(!currentUser){openAuth();return;}
+  // Auto-save: the backend decides new-vs-version. It tells us which it did.
+  await doSave('auto');
+}
+
+async function doSave(saveAs,targetId){
   const btn=document.getElementById('saveBtn');
-  if(btn){btn.disabled=true;}
+  if(btn)btn.disabled=true;
   try{
     const payload={
       query:lastQuery,industry:industry,result:lastResult,
@@ -1401,17 +1741,21 @@ async function saveCurrentAnalysis(){
       col_count:rawData&&rawData[0]?Object.keys(rawData[0]).length:null,
       columns:rawData&&rawData[0]?Object.keys(rawData[0]):[],
       data_preview:rawData?rawData.slice(0,50):[],
+      save_as:saveAs||'auto',
     };
+    if(targetId)payload.target_id=targetId;
     const r=await fetch(getUrl()+'/api/v1/auth/history',{method:'POST',
       headers:authHeaders({'Content-Type':'application/json'}),body:JSON.stringify(payload)});
     const d=await r.json();
-    if(d.success){
-      savedThisResult=true;
-      if(btn){btn.classList.add('saved');btn.querySelector('.save-label').textContent='Saved';}
+    if(!d.success){toast(d.error||'Could not save','err');return;}
+    savedThisResult=true;
+    if(btn){btn.classList.add('saved');const sl=btn.querySelector('.save-label');if(sl)sl.textContent='Saved';}
+    if(d.new_version&&d.auto_matched)
+      toast(`Saved as version ${d.version_count} of an earlier analysis`,'ok');
+    else if(d.new_version)
+      toast(`Saved as version ${d.version_count}`,'ok');
+    else
       toast('Saved to your history','ok');
-    }else{
-      toast(d.error||'Could not save','err');
-    }
   }catch(e){toast('Could not save','err');}
   finally{if(btn)btn.disabled=false;}
 }
