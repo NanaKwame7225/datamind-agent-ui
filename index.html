@@ -1431,10 +1431,10 @@ async function loadSchedules(){
         `<span class="sched-chip next">next: ${fmtWhen(s.next_run)}</span>`,
         `<span class="sched-chip">${s.frequency}</span>`,
         `<span class="sched-chip">${s.row_count} rows</span>`,
-        ch.email?`<span class="sched-chip email">email</span>`:'',
-        ch.sms?`<span class="sched-chip sms">SMS</span>`:'',
+        ch.email?`<span class="sched-chip email">✉ ${escapeHtml(ch.email_to||'(no address)')}</span>`:'',
+        ch.sms?`<span class="sched-chip sms">☎ ${escapeHtml(ch.sms_to||'(no number)')}</span>`:'',
         s.run_count?`<span class="sched-chip">ran ${s.run_count}×</span>`:'',
-        s.last_status&&s.last_status!=='ok'?`<span class="sched-chip" style="color:var(--red)">${s.last_status}</span>`:'',
+        s.last_status&&s.last_status!=='ok'?`<span class="sched-chip" style="color:var(--red)">${escapeHtml(s.last_status)}</span>`:'',
       ].filter(Boolean).join('');
       return `<div class="sched-card ${s.active?'':'paused'}">
         <div class="sched-card-main">
