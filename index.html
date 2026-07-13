@@ -1342,8 +1342,20 @@ async function initScheduledPage(){
     const r=await fetch(getUrl()+'/api/v1/schedules/channels');
     channelStatus=await r.json();
   }catch(e){}
-  // Warn if no data loaded
-  document.getElementById('schedNeedData').style.display=(uploadedData&&uploadedData.length)?'none':'';
+  // Show whether data is detected, with the row count, so it's never a mystery
+  const data=[uploadedData,rawData,filteredData].find(x=>Array.isArray(x)&&x.length>0);
+  const note=document.getElementById('schedNeedData');
+  if(data&&data.length){
+    note.style.display='';
+    note.className='sched-note';
+    note.style.background='rgba(0,216,136,.08)';note.style.borderColor='rgba(0,216,136,.3)';note.style.color='var(--green)';
+    note.textContent=`✓ ${data.length} rows of data ready to schedule.`;
+  }else{
+    note.style.display='';
+    note.className='sched-note';
+    note.style.background='';note.style.borderColor='';note.style.color='';
+    note.textContent='No data loaded yet. Go to the Analyse page, upload a file and run an analysis first — then this report will have data to run on.';
+  }
   loadSchedules();
 }
 
@@ -1354,8 +1366,9 @@ function schedMsg(m,kind){
 
 async function createSchedule(){
   if(!currentUser){openAuth();return;}
-  const data=(uploadedData&&uploadedData.length?uploadedData:null)||(rawData&&rawData.length?rawData:null);
-  if(!data||!data.length){schedMsg('Upload data on the Analyse page and run an analysis first — a schedule needs data to run on.','err');return;}
+  // Read whichever data holder is populated — uploaded, raw, or filtered.
+  const data=[uploadedData,rawData,filteredData].find(x=>Array.isArray(x)&&x.length>0);
+  if(!data||!data.length){schedMsg('No data detected. Go to the Analyse page, upload a file, run an analysis, then come back.','err');return;}
   const query=document.getElementById('schedQuery').value.trim();
   if(!query){schedMsg('Add the question the report should answer.','err');return;}
 
