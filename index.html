@@ -1434,7 +1434,7 @@ async function loadSchedules(){
         ch.email?`<span class="sched-chip email">✉ ${escapeHtml(ch.email_to||'(no address)')}</span>`:'',
         ch.sms?`<span class="sched-chip sms">☎ ${escapeHtml(ch.sms_to||'(no number)')}</span>`:'',
         s.run_count?`<span class="sched-chip">ran ${s.run_count}×</span>`:'',
-        s.last_status&&s.last_status!=='ok'?`<span class="sched-chip" style="color:var(--red)">${escapeHtml(s.last_status)}</span>`:'',
+        s.last_status?`<span class="sched-chip" style="color:${/\(|fail|error|needs/.test(s.last_status)?'var(--red)':'var(--green)'}">${escapeHtml(s.last_status)}</span>`:'',
       ].filter(Boolean).join('');
       return `<div class="sched-card ${s.active?'':'paused'}">
         <div class="sched-card-main">
