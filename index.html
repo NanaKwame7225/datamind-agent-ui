@@ -106,7 +106,49 @@ h1,h2,h3,.font-head{font-family:'Inter Tight',sans-serif;font-weight:700;letter-
 .auth-guest-btn:hover{border-color:var(--accent);color:var(--accent)}
 .auth-note{font-size:10.5px;color:var(--text3);text-align:center;margin-top:12px;line-height:1.5}
 
-/* History drawer */
+/* Workspace switcher + menus */
+.ws-switch{display:flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:12px;font-weight:600;padding:6px 10px;border-radius:9px;cursor:pointer;transition:all .15s}
+.ws-switch:hover{border-color:var(--accent)}
+.ws-switch svg{stroke:currentColor;fill:none;stroke-width:2}
+.ws-menu-backdrop,.ws-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;display:none;align-items:flex-start;justify-content:center}
+.ws-menu-backdrop.open,.ws-modal-backdrop.open{display:flex}
+.ws-menu{position:absolute;top:56px;right:120px;width:280px;background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.3);overflow:hidden}
+.ws-menu-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--border);font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em}
+.ws-list{max-height:320px;overflow-y:auto}
+.ws-item{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;cursor:pointer;transition:background .12s;border-bottom:1px solid var(--border)}
+.ws-item:hover{background:var(--card2)}
+.ws-item.active{background:rgba(0,200,190,.08)}
+.ws-item-main{min-width:0;flex:1}
+.ws-item-name{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px}
+.ws-item-meta{font-size:10.5px;color:var(--text3);margin-top:2px}
+.ws-role-badge{font-size:9px;font-weight:700;text-transform:uppercase;padding:1px 5px;border-radius:4px;background:var(--card2);border:1px solid var(--border);color:var(--text3)}
+.ws-role-badge.owner{color:var(--accent);border-color:rgba(0,200,190,.3)}
+.ws-item-gear{background:none;border:none;color:var(--text3);cursor:pointer;padding:4px;border-radius:5px;flex-shrink:0}
+.ws-item-gear:hover{color:var(--accent)}
+.ws-item-check{color:var(--accent);flex-shrink:0}
+.ws-menu-foot{padding:10px 14px;border-top:1px solid var(--border)}
+.ws-new-btn{width:100%;background:var(--accent);color:#04121a;border:none;font-family:inherit;font-size:12px;font-weight:700;padding:9px;border-radius:8px;cursor:pointer}
+.ws-new-btn:hover{opacity:.9}
+.ws-modal{position:relative;top:100px;width:440px;max-width:92vw;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:0 16px 50px rgba(0,0,0,.35)}
+.ws-modal-wide{width:520px}
+.ws-modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:16px;font-weight:700;color:var(--text)}
+.ws-x{background:none;border:none;color:var(--text3);font-size:22px;cursor:pointer;line-height:1}
+.ws-x:hover{color:var(--text)}
+.ws-invite-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.ws-invite-btn{background:var(--accent);color:#04121a;border:none;font-family:inherit;font-size:12px;font-weight:700;padding:9px 14px;border-radius:8px;cursor:pointer;white-space:nowrap}
+.ws-members-list{margin-top:10px;display:flex;flex-direction:column;gap:7px}
+.ws-member{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--card2);border:1px solid var(--border);border-radius:9px}
+.ws-member-info{min-width:0}
+.ws-member-email{font-size:13px;color:var(--text);font-weight:600}
+.ws-member-name{font-size:11px;color:var(--text3)}
+.ws-member-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.ws-member-role{font-size:11px;font-family:inherit;background:var(--card);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:4px 6px}
+.ws-member-remove{background:none;border:none;color:var(--text3);cursor:pointer;font-size:15px;padding:2px 6px;border-radius:5px}
+.ws-member-remove:hover{color:var(--red)}
+.ws-modal-foot{margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
+.ws-danger-btn{background:none;border:1px solid rgba(255,90,90,.35);color:var(--red);font-family:inherit;font-size:12px;font-weight:600;padding:8px 14px;border-radius:8px;cursor:pointer}
+.ws-danger-btn:hover{background:rgba(255,90,90,.1)}
+@media(max-width:600px){.ws-menu{right:12px;left:12px;width:auto}.ws-switch span{max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
 .hist-backdrop{position:fixed;inset:0;background:rgba(3,8,18,.6);backdrop-filter:blur(3px);z-index:390;display:none}
 .hist-backdrop.open{display:block}
 .hist-drawer{position:absolute;top:0;right:0;bottom:0;width:340px;max-width:88vw;background:var(--card);border-left:1px solid var(--border2);padding:20px;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .22s ease;overflow-y:auto}
@@ -1546,7 +1588,6 @@ async function deleteSchedule(id){
 
 // ── ACCOUNTS & SAVED HISTORY ───────────────────────────────────────────────
 let authToken=null, currentUser=null, savedThisResult=false;
-let currentWorkspace='personal';  // 'personal' or a shared workspace id
 
 const TOKEN_KEY='datamind_token';
 
@@ -1584,12 +1625,16 @@ function reflectAuth(){
   if(currentUser&&!currentUser.is_guest){
     btn.classList.add('signed');
     label.textContent=(currentUser.name||currentUser.email||'Account').split(' ')[0];
+    loadWorkspaces();
   }else if(currentUser&&currentUser.is_guest){
     btn.classList.remove('signed');
     label.textContent='Guest';
+    document.getElementById('wsSwitch').style.display='none';
   }else{
     btn.classList.remove('signed');
     label.textContent='Sign in';
+    const sw=document.getElementById('wsSwitch');if(sw)sw.style.display='none';
+    currentWorkspace={id:null,name:'Personal',role:'owner',personal:true};
   }
 }
 
@@ -1674,6 +1719,177 @@ async function signOut(){
   toast('Signed out','ok');
 }
 
+// ── WORKSPACES ─────────────────────────────────────────────────────────────
+let currentWorkspace={id:null,name:'Personal',role:'owner',personal:true}; // null id = personal
+let allWorkspaces=[];
+
+function wsScopeParam(){
+  // Returns the workspace_id to send with history calls (null for personal)
+  return (currentWorkspace && !currentWorkspace.personal) ? currentWorkspace.id : null;
+}
+
+async function loadWorkspaces(){
+  if(!currentUser){document.getElementById('wsSwitch').style.display='none';return;}
+  document.getElementById('wsSwitch').style.display='';
+  try{
+    const r=await fetch(getUrl()+'/api/v1/workspaces',{headers:authHeaders()});
+    const d=await r.json();
+    allWorkspaces=d.workspaces||[];
+    // Keep current selection valid; default to Personal
+    if(!allWorkspaces.find(w=>w.id===currentWorkspace.id)){
+      const personal=allWorkspaces.find(w=>w.personal)||{id:null,name:'Personal',role:'owner',personal:true};
+      currentWorkspace=personal;
+    }
+    document.getElementById('wsCurrentName').textContent=currentWorkspace.name;
+  }catch(e){}
+}
+
+function toggleWsMenu(){
+  const b=document.getElementById('wsMenuBackdrop');
+  if(b.classList.contains('open')){closeWsMenu();return;}
+  renderWsMenu();
+  b.classList.add('open');
+}
+function closeWsMenu(){document.getElementById('wsMenuBackdrop').classList.remove('open');}
+
+function renderWsMenu(){
+  const list=document.getElementById('wsList');
+  list.innerHTML=allWorkspaces.map(w=>{
+    const active=w.id===currentWorkspace.id||(w.personal&&currentWorkspace.personal);
+    const gear=!w.personal?`<button class="ws-item-gear" onclick="event.stopPropagation();openMembers('${w.id}','${escapeHtml(w.name)}','${w.role}')" title="Members & settings"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.5-2.4 1a7 7 0 0 0-1.7-1l-.4-2.5h-4l-.4 2.5a7 7 0 0 0-1.7 1l-2.4-1-2 3.5 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.5 2.4-1a7 7 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.5-2-1.5a7 7 0 0 0 .1-1z"/></svg></button>`:'';
+    return `<div class="ws-item ${active?'active':''}" onclick="switchWorkspace('${w.id||''}',${w.personal})">
+      <div class="ws-item-main">
+        <div class="ws-item-name">${escapeHtml(w.name)} ${active?'<svg class="ws-item-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':''}</div>
+        <div class="ws-item-meta"><span class="ws-role-badge ${w.role}">${w.role}</span> ${w.personal?'private':((w.member_count||1)+' member'+((w.member_count||1)!==1?'s':''))}</div>
+      </div>
+      ${gear}
+    </div>`;
+  }).join('');
+}
+
+async function switchWorkspace(id,personal){
+  if(personal||!id){
+    currentWorkspace={id:null,name:'Personal',role:'owner',personal:true};
+  }else{
+    const w=allWorkspaces.find(x=>x.id===id);
+    if(w)currentWorkspace=w;
+  }
+  document.getElementById('wsCurrentName').textContent=currentWorkspace.name;
+  closeWsMenu();
+  toast('Switched to '+currentWorkspace.name,'ok');
+  // Refresh history for the new scope if the drawer's open
+  if(document.getElementById('histBackdrop').classList.contains('open'))loadHistory();
+}
+
+// Create workspace
+function openCreateWs(){closeWsMenu();document.getElementById('wsCreateBackdrop').classList.add('open');document.getElementById('wsNewName').focus();}
+function closeCreateWs(){document.getElementById('wsCreateBackdrop').classList.remove('open');document.getElementById('wsCreateMsg').textContent='';document.getElementById('wsNewName').value='';}
+async function createWorkspace(){
+  const name=document.getElementById('wsNewName').value.trim();
+  if(!name){document.getElementById('wsCreateMsg').textContent='Give it a name.';return;}
+  try{
+    const r=await fetch(getUrl()+'/api/v1/workspaces',{method:'POST',headers:authHeaders({'Content-Type':'application/json'}),body:JSON.stringify({name})});
+    const d=await r.json();
+    if(!d.success){document.getElementById('wsCreateMsg').textContent=d.error||'Could not create.';return;}
+    closeCreateWs();
+    await loadWorkspaces();
+    // switch into the new workspace
+    const nw=allWorkspaces.find(w=>w.id===d.id);
+    if(nw){currentWorkspace=nw;document.getElementById('wsCurrentName').textContent=nw.name;}
+    toast('Workspace created','ok');
+    openMembers(d.id,name,'owner'); // jump straight to invite
+  }catch(e){document.getElementById('wsCreateMsg').textContent='Could not reach the server.';}
+}
+
+// Members
+let membersWsId=null,membersWsRole=null;
+async function openMembers(wid,name,role){
+  closeWsMenu();
+  membersWsId=wid;membersWsRole=role;
+  document.getElementById('wsMembersTitle').textContent=name+' · members';
+  document.getElementById('wsMembersBackdrop').classList.add('open');
+  document.getElementById('wsMembersMsg').textContent='';
+  // Only owners see invite + danger zone
+  document.getElementById('wsInviteRow').style.display=role==='owner'?'':'none';
+  document.getElementById('wsDangerRow').style.display=role==='owner'?'':'none';
+  loadMembers();
+}
+function closeMembers(){document.getElementById('wsMembersBackdrop').classList.remove('open');}
+
+async function loadMembers(){
+  const list=document.getElementById('wsMembersList');
+  list.innerHTML='<div class="sched-empty">Loading…</div>';
+  try{
+    const r=await fetch(getUrl()+'/api/v1/workspaces/'+membersWsId+'/members',{headers:authHeaders()});
+    const d=await r.json();
+    if(!d.success){list.innerHTML='<div class="sched-empty">'+(d.error||'Could not load members.')+'</div>';return;}
+    const isOwner=membersWsRole==='owner';
+    list.innerHTML=d.members.map(m=>{
+      const roleCtl=isOwner&&!m.you&&m.role!=='owner'
+        ? `<select class="ws-member-role" onchange="changeRole('${m.user_id}',this.value)">
+             <option value="editor" ${m.role==='editor'?'selected':''}>Editor</option>
+             <option value="viewer" ${m.role==='viewer'?'selected':''}>Viewer</option>
+           </select>`
+        : `<span class="ws-member-role">${m.role}</span>`;
+      const remove=isOwner&&!m.you&&m.role!=='owner'
+        ? `<button class="ws-member-remove" onclick="removeMember('${m.user_id}')" title="Remove">&times;</button>`:'';
+      return `<div class="ws-member">
+        <div class="ws-member-info">
+          <div class="ws-member-email">${escapeHtml(m.email||'—')} ${m.you?'<span style="color:var(--text3);font-size:11px">(you)</span>':''}</div>
+          ${m.name?`<div class="ws-member-name">${escapeHtml(m.name)}</div>`:''}
+        </div>
+        <div class="ws-member-actions">${roleCtl}${remove}</div>
+      </div>`;
+    }).join('');
+  }catch(e){list.innerHTML='<div class="sched-empty">Could not load members.</div>';}
+}
+
+async function inviteMember(){
+  const email=document.getElementById('wsInviteEmail').value.trim();
+  const role=document.getElementById('wsInviteRole').value;
+  const msg=document.getElementById('wsMembersMsg');
+  if(!email){msg.textContent='Enter an email.';msg.className='auth-msg err';return;}
+  try{
+    const r=await fetch(getUrl()+'/api/v1/workspaces/'+membersWsId+'/invite',{method:'POST',headers:authHeaders({'Content-Type':'application/json'}),body:JSON.stringify({email,role})});
+    const d=await r.json();
+    if(!d.success){msg.textContent=d.error||'Could not invite.';msg.className='auth-msg err';return;}
+    msg.textContent=(d.updated?'Role updated for ':'Invited ')+email;msg.className='auth-msg ok';
+    document.getElementById('wsInviteEmail').value='';
+    loadMembers();
+    loadWorkspaces();
+  }catch(e){msg.textContent='Could not reach the server.';msg.className='auth-msg err';}
+}
+
+async function changeRole(uid,role){
+  try{
+    await fetch(getUrl()+'/api/v1/workspaces/'+membersWsId+'/member/'+uid,{method:'PATCH',headers:authHeaders({'Content-Type':'application/json'}),body:JSON.stringify({role})});
+    toast('Role updated','ok');loadMembers();
+  }catch(e){toast('Could not update role','err');}
+}
+async function removeMember(uid){
+  try{
+    const r=await fetch(getUrl()+'/api/v1/workspaces/'+membersWsId+'/member/'+uid,{method:'DELETE',headers:authHeaders()});
+    const d=await r.json();
+    if(d.success){toast('Member removed','ok');loadMembers();loadWorkspaces();}
+    else toast(d.error||'Could not remove','err');
+  }catch(e){toast('Could not remove member','err');}
+}
+async function deleteWorkspace(){
+  if(!confirm('Delete this workspace? All its shared analyses will be removed. This cannot be undone.'))return;
+  try{
+    const r=await fetch(getUrl()+'/api/v1/workspaces/'+membersWsId,{method:'DELETE',headers:authHeaders()});
+    const d=await r.json();
+    if(d.success){
+      closeMembers();
+      currentWorkspace={id:null,name:'Personal',role:'owner',personal:true};
+      await loadWorkspaces();
+      document.getElementById('wsCurrentName').textContent='Personal';
+      toast('Workspace deleted','ok');
+    }else toast(d.error||'Could not delete','err');
+  }catch(e){toast('Could not delete','err');}
+}
+// ── WORKSPACES end ─────────────────────────────────────────────────────────
+
 // ── History drawer ─────────────────────────────────────────────────────────
 async function openHistory(){
   const bd=document.getElementById('histBackdrop');
@@ -1692,7 +1908,8 @@ async function loadHistory(){
   const list=document.getElementById('histList');
   list.innerHTML='<div class="hist-empty">Loading…</div>';
   try{
-    const r=await fetch(getUrl()+'/api/v1/auth/history?limit=50',{headers:authHeaders()});
+    const wsp=wsScopeParam();const wsq=wsp?('&workspace_id='+encodeURIComponent(wsp)):'';
+    const r=await fetch(getUrl()+'/api/v1/auth/history?limit=50'+wsq,{headers:authHeaders()});
     const d=await r.json();
     if(!d.success||!d.items||!d.items.length){
       list.innerHTML='<div class="hist-empty">No saved analyses yet.<br>Run an analysis and tap <strong>Save</strong> to keep it here.</div>';
@@ -1816,7 +2033,7 @@ async function autoRecordAnalysis(){
     };
     if(currentWorkspace&&currentWorkspace!=='personal')payload.workspace_id=currentWorkspace;
     const r=await fetch(getUrl()+'/api/v1/auth/history',{method:'POST',
-      headers:authHeaders({'Content-Type':'application/json'}),body:JSON.stringify(payload)});
+      headers:authHeaders({'Content-Type':'application/json'}),body:JSON.stringify({...payload,workspace_id:wsScopeParam()})});
     const d=await r.json();
     if(d.success){savedThisResult=true;
       const btn=document.getElementById('saveBtn');
@@ -1839,7 +2056,7 @@ async function doSave(saveAs,targetId){
     };
     if(targetId)payload.target_id=targetId;
     const r=await fetch(getUrl()+'/api/v1/auth/history',{method:'POST',
-      headers:authHeaders({'Content-Type':'application/json'}),body:JSON.stringify(payload)});
+      headers:authHeaders({'Content-Type':'application/json'}),body:JSON.stringify({...payload,workspace_id:wsScopeParam()})});
     const d=await r.json();
     if(!d.success){toast(d.error||'Could not save','err');return;}
     savedThisResult=true;
