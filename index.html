@@ -52,7 +52,7 @@ h1,h2,h3,.font-head{font-family:'Inter Tight',sans-serif;font-weight:700;letter-
 /* PAGE SYSTEM */
 .page{display:none;animation:fadeIn .25s ease}
 .page.active{display:block}
-@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
 /* ANALYSE PAGE */
 .analyse-layout{display:grid;grid-template-columns:minmax(0,1fr);max-width:900px;margin:0 auto;padding:32px 24px;width:100%}
@@ -1330,7 +1330,7 @@ function switchPage(page,btn){
   if(btn)btn.classList.add('active');
   else document.querySelector(`.nav-tab[data-page="${page}"]`)?.classList.add('active');
   window.scrollTo(0,0);
-  if(page==='dashboard'&&lastResult)setTimeout(()=>{if(filteredData)rebuildCharts(filteredData);},50);
+  if(page==='dashboard'&&lastResult)setTimeout(()=>{maybeRebuildCharts();},50);
   if(page==='forecast'&&(filteredData||rawData))initForecastPage(filteredData||rawData);
   if(page==='scheduled')initScheduledPage();
   if(page==='notebook')initNotebookPage();
@@ -3053,7 +3053,12 @@ function buildSlicers(data,query){
   const c=document.createElement('div');c.className='slicer-count';c.id='slicerCount';c.textContent=data.length+' rows';row.appendChild(c);
   document.getElementById('slicersBar').style.display='block';
 }
-function applySlicers(){if(!rawData)return;filteredData=rawData.filter(row=>{for(const[k,v]of Object.entries(slicerState)){if(k.endsWith('_min')){const c=k.replace('_min','');if(row[c]!==undefined&&row[c]<v)return false;}else if(k.endsWith('_max')){const c=k.replace('_max','');if(row[c]!==undefined&&row[c]>v)return false;}else if(v!=='all'){if(row[k]!==undefined&&String(row[k])!==String(v))return false;}}return true;});const c=document.getElementById('slicerCount');if(c)c.textContent=filteredData.length===rawData.length?rawData.length+' rows \u00b7 live':filteredData.length+' of '+rawData.length+' rows';document.getElementById('previewFilter').textContent=filteredData.length<rawData.length?` — ${filteredData.length} filtered rows`:'';rebuildCharts(filteredData);renderPreview(filteredData.slice(0,8));renderMetricsFromData(filteredData);}
+function applySlicers(){if(!rawData)return;filteredData=rawData.filter(row=>{for(const[k,v]of Object.entries(slicerState)){if(k.endsWith('_min')){const c=k.replace('_min','');if(row[c]!==undefined&&row[c]<v)return false;}else if(k.endsWith('_max')){const c=k.replace('_max','');if(row[c]!==undefined&&row[c]>v)return false;}else if(v!=='all'){if(row[k]!==undefined&&String(row[k])!==String(v))return false;}}return true;});const c=document.getElementById('slicerCount');if(c)c.textContent=filteredData.length===rawData.length?rawData.length+' rows \u00b7 live':filteredData.length+' of '+rawData.length+' rows';document.getElementById('previewFilter').textContent=filteredData.length<rawData.length?` — ${filteredData.length} filtered rows`:'';renderPreview(filteredData.slice(0,8));renderMetricsFromData(filteredData);debouncedChartRebuild(filteredData);}
+let _chartDebounce=null;
+function debouncedChartRebuild(data){
+  clearTimeout(_chartDebounce);
+  _chartDebounce=setTimeout(()=>{_lastChartSig=chartSig(data);rebuildCharts(data);},120);
+}
 function resetSlicers(){filteredData=[...rawData];document.querySelectorAll('.slicer-select').forEach(s=>s.value='all');const inputs=document.querySelectorAll('.slicer-num');const numCols=Object.keys(rawData[0]).filter(k=>typeof rawData[0][k]==='number');if(numCols.length&&inputs.length>=2){const vals=rawData.map(r=>r[numCols[0]]).filter(v=>typeof v==='number');inputs[0].value=Math.floor(Math.min(...vals));inputs[1].value=Math.ceil(Math.max(...vals));}const c=document.getElementById('slicerCount');if(c)c.textContent=rawData.length+' rows \u00b7 live';document.getElementById('previewFilter').textContent='';rebuildCharts(filteredData);renderPreview(filteredData.slice(0,8));renderMetricsFromData(filteredData);toast('Filters reset','ok');}
 
 
@@ -3115,6 +3120,7 @@ function renderMetrics(ms){
 const COLORS=['#00c8be','#3d7ef5','#f0a020','#f04060','#00d888','#8b5cf6','#ec4899','#14b8a6'];
 function getLayout(h=190){return{
   paper_bgcolor:'transparent',plot_bgcolor:'transparent',
+  transition:{duration:0},
   font:{color:'#7d93b3',family:'Inter Tight',size:10},
   margin:{l:44,r:12,t:8,b:34},
   height:h,
@@ -3126,7 +3132,7 @@ function getLayout(h=190){return{
   yaxis:{gridcolor:'rgba(255,255,255,0.035)',zerolinecolor:'rgba(255,255,255,0.07)',
     linecolor:'rgba(255,255,255,0.07)',tickfont:{size:10},automargin:true},
 };}
-const CFG={responsive:true,displayModeBar:false,doubleClick:'reset'};
+const CFG={responsive:true,displayModeBar:false,doubleClick:'reset',staticPlot:false};
 function renderCharts(apiCharts,data,intents,query){
   const g=document.getElementById('chartsGrid');
   g.innerHTML='';
@@ -3149,6 +3155,28 @@ function renderCharts(apiCharts,data,intents,query){
   buildQueryAwareCharts(data,g,apiCharts.length,intents,query);
 }
 function rebuildCharts(data){const g=document.getElementById('chartsGrid');g.innerHTML='';buildQueryAwareCharts(data,g,0,detectQueryIntent(lastQuery),lastQuery);}
+
+// Only rebuild charts when the data or query actually changed — switching back to
+// an unchanged dashboard should be instant, not a full re-render.
+let _lastChartSig=null;
+function chartSig(data){
+  try{return (lastQuery||'')+'|'+(data?data.length:0)+'|'+(data&&data[0]?Object.keys(data[0]).join(','):'');}
+  catch(e){return Math.random().toString();}
+}
+function maybeRebuildCharts(){
+  const data=filteredData;
+  if(!data)return;
+  const sig=chartSig(data);
+  const grid=document.getElementById('chartsGrid');
+  // Rebuild only if data/query changed OR the grid is empty (first visit)
+  if(sig!==_lastChartSig || !grid || !grid.children.length){
+    _lastChartSig=sig;
+    rebuildCharts(data);
+  }else{
+    // Same data — just tell Plotly to resize existing charts to the viewport
+    if(window.Plotly){grid.querySelectorAll('.chart-card > div[id^="ac"]').forEach(el=>{try{Plotly.Plots.resize(el);}catch(e){}});}
+  }
+}
 // ── PROFESSIONAL CHART ENGINE ──────────────────────────────────────────────
 // Selects chart types based on what the user actually asked for, and on the
 // shape of the data. Every chart carries a plain-English subtitle explaining
