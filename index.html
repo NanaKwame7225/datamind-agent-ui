@@ -163,6 +163,9 @@ h1,h2,h3,.font-head{font-family:'Inter Tight',sans-serif;font-weight:700;letter-
 .nb-run-btn{display:flex;align-items:center;gap:7px;background:var(--accent);color:#04121a;border:none;font-family:inherit;font-size:13px;font-weight:700;padding:11px 18px;border-radius:9px;cursor:pointer;white-space:nowrap}
 .nb-run-btn:hover{opacity:.9}
 .nb-run-btn:disabled{opacity:.5;cursor:not-allowed}
+.nb-run-col{display:flex;flex-direction:column;gap:7px;align-items:stretch}
+.nb-deep-toggle{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);cursor:pointer;white-space:nowrap;justify-content:center}
+.nb-deep-toggle input{width:14px;height:14px;accent-color:var(--accent)}
 .nb-run-note{text-align:center;font-size:11px;color:var(--text3);margin-top:10px}
 @media(max-width:600px){.nb-addcell{flex-direction:column;align-items:stretch}.nb-run-btn{justify-content:center}}
 .ws-switch{display:flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:12px;font-weight:600;padding:6px 10px;border-radius:9px;cursor:pointer;transition:all .15s}
@@ -1139,12 +1142,15 @@ tr:hover td{background:rgba(255,255,255,.02)}
 
       <div class="nb-addcell">
         <textarea class="nb-cell-input" id="nbCellQuestion" rows="2" placeholder="Ask a question about your data… (e.g. Which region is most at risk of decline?)"></textarea>
-        <button class="nb-run-btn" id="nbRunBtn" onclick="runCell()">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          <span>Run cell</span>
-        </button>
+        <div class="nb-run-col">
+          <label class="nb-deep-toggle"><input type="checkbox" id="nbDeep"> <span>Deep analysis</span></label>
+          <button class="nb-run-btn" id="nbRunBtn" onclick="runCell()">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <span>Run cell</span>
+          </button>
+        </div>
       </div>
-      <div class="nb-run-note">Each cell runs 3 AI analysts in parallel, then synthesises — this can take 15–40 seconds.</div>
+      <div class="nb-run-note" id="nbRunNote">Fast mode: one analyst pass (~10s). Tick “Deep analysis” for the full 3-agent panel (~30s) on hard questions.</div>
     </div>
   </div>
 </div>
@@ -1633,7 +1639,7 @@ function cellHtml(c,num){
     </div>`:'';
   const body=c.ok
     ? `<div class="nb-cell-answer">${renderMarkdown(c.answer||'')}</div>${agentPanel}
-       <div class="nb-cell-foot"><span>${c.provider||''}</span></div>`
+       <div class="nb-cell-foot"><span>${c.mode==='deep'?'deep · 3 analysts':'fast'}</span><span>${c.provider||''}</span></div>`
     : `<div class="nb-cell-err">${escapeHtml(c.error||'This cell could not be analysed.')}</div>`;
   return `<div class="nb-cell" id="cell-${c.id}">
     <div class="nb-cell-q">
@@ -1663,25 +1669,25 @@ async function runCell(){
   if(!openNotebookId)return;
   const q=document.getElementById('nbCellQuestion').value.trim();
   if(!q){toast('Type a question first','err');return;}
+  const deep=document.getElementById('nbDeep').checked;
   const btn=document.getElementById('nbRunBtn');btn.disabled=true;
   // optimistic running cell
   const cells=document.getElementById('nbCells');
   if(cells.querySelector('.nb-empty'))cells.innerHTML='';
-  const tempId='running';
   const num=cells.querySelectorAll('.nb-cell').length+1;
+  const runMsg=deep?'Running 3 analysts + synthesis…':'Analysing…';
   cells.insertAdjacentHTML('beforeend',`<div class="nb-cell" id="cell-running">
     <div class="nb-cell-q"><span class="nb-cell-qnum">[${num}]</span><span class="nb-cell-qtext">${escapeHtml(q)}</span></div>
-    <div class="nb-cell-body"><div class="nb-cell-running"><div class="nb-spinner"></div>Running 3 analysts + synthesis…</div></div>
+    <div class="nb-cell-body"><div class="nb-cell-running"><div class="nb-spinner"></div>${runMsg}</div></div>
   </div>`);
   document.getElementById('cell-running').scrollIntoView({behavior:'smooth',block:'center'});
   try{
     const r=await fetch(getUrl()+'/api/v1/notebooks/'+openNotebookId+'/cells',{method:'POST',
-      headers:authHeaders({'Content-Type':'application/json'}),body:JSON.stringify({question:q,workspace_id:wsScopeParam()})});
+      headers:authHeaders({'Content-Type':'application/json'}),body:JSON.stringify({question:q,workspace_id:wsScopeParam(),deep})});
     const d=await r.json();
     document.getElementById('cell-running').remove();
     if(!d.success){toast(d.error||'Cell failed','err');btn.disabled=false;return;}
     document.getElementById('nbCellQuestion').value='';
-    // re-fetch to render in order
     await openNotebook(openNotebookId);
     document.getElementById('nbCells').lastElementChild?.scrollIntoView({behavior:'smooth',block:'center'});
   }catch(e){
