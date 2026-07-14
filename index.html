@@ -538,6 +538,11 @@ tr:hover td{background:rgba(255,255,255,.02)}
   </div>
   <div class="nav-right">
     <div class="api-pill" onclick="checkHealth()" style="cursor:pointer" title="Click to re-check the backend"><div class="sdot wait" id="sdot"></div><span id="stext">Connecting</span></div>
+    <button class="ws-switch" id="wsSwitch" onclick="toggleWsMenu()" title="Switch workspace" style="display:none">
+      <svg viewBox="0 0 24 24" width="14" height="14"><path d="M3 7h18M3 12h18M3 17h18"/></svg>
+      <span id="wsCurrentName">Personal</span>
+      <svg viewBox="0 0 24 24" width="12" height="12"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
     <button class="acct-btn" id="acctBtn" onclick="onAccountClick()" title="Account">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 14 0v1"/></svg>
       <span id="acctLabel">Sign in</span>
@@ -545,6 +550,48 @@ tr:hover td{background:rgba(255,255,255,.02)}
     <button class="theme-btn" onclick="toggleThemePanel()">Theme</button>
   </div>
 </nav>
+
+<!-- ── Workspace menu (dropdown) ─────────────────────────────────────────────── -->
+<div class="ws-menu-backdrop" id="wsMenuBackdrop" onclick="if(event.target===this)closeWsMenu()">
+  <div class="ws-menu" id="wsMenu">
+    <div class="ws-menu-head">
+      <span>Workspaces</span>
+      <button class="ws-x" onclick="closeWsMenu()" aria-label="Close">&times;</button>
+    </div>
+    <div id="wsList" class="ws-list"></div>
+    <div class="ws-menu-foot">
+      <button class="ws-new-btn" onclick="openCreateWs()">+ New workspace</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Create workspace modal ────────────────────────────────────────────────── -->
+<div class="ws-modal-backdrop" id="wsCreateBackdrop" onclick="if(event.target===this)closeCreateWs()">
+  <div class="ws-modal">
+    <div class="ws-modal-head"><span>New workspace</span><button class="ws-x" onclick="closeCreateWs()">&times;</button></div>
+    <label class="auth-label">Workspace name</label>
+    <input class="auth-input" id="wsNewName" placeholder="e.g. NkaySolutions Team" onkeydown="if(event.key==='Enter')createWorkspace()">
+    <button class="auth-submit" onclick="createWorkspace()" style="margin-top:14px">Create workspace</button>
+    <div class="auth-msg" id="wsCreateMsg"></div>
+  </div>
+</div>
+
+<!-- ── Members modal ─────────────────────────────────────────────────────────── -->
+<div class="ws-modal-backdrop" id="wsMembersBackdrop" onclick="if(event.target===this)closeMembers()">
+  <div class="ws-modal ws-modal-wide">
+    <div class="ws-modal-head"><span id="wsMembersTitle">Members</span><button class="ws-x" onclick="closeMembers()">&times;</button></div>
+    <div id="wsInviteRow" class="ws-invite-row">
+      <input class="auth-input" id="wsInviteEmail" placeholder="colleague@email.com" style="flex:1">
+      <select class="slicer-select" id="wsInviteRole"><option value="editor">Editor</option><option value="viewer">Viewer</option></select>
+      <button class="ws-invite-btn" onclick="inviteMember()">Invite</button>
+    </div>
+    <div class="auth-msg" id="wsMembersMsg"></div>
+    <div id="wsMembersList" class="ws-members-list"></div>
+    <div class="ws-modal-foot" id="wsDangerRow" style="display:none">
+      <button class="ws-danger-btn" onclick="deleteWorkspace()">Delete this workspace</button>
+    </div>
+  </div>
+</div>
 
 <!-- ANALYSE PAGE -->
 <div class="page active" id="page-analyse">
