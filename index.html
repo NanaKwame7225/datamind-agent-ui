@@ -1499,6 +1499,7 @@ async function deleteSchedule(id){
 
 // ── ACCOUNTS & SAVED HISTORY ───────────────────────────────────────────────
 let authToken=null, currentUser=null, savedThisResult=false;
+let currentWorkspace='personal';  // 'personal' or a shared workspace id
 
 const TOKEN_KEY='datamind_token';
 
@@ -1750,6 +1751,31 @@ async function saveCurrentAnalysis(){
   if(!currentUser){openAuth();return;}
   // Auto-save: the backend decides new-vs-version. It tells us which it did.
   await doSave('auto');
+}
+
+// Silent auto-record: every analysis is kept in history automatically for
+// signed-in users. No toast, no button state — it just happens in the
+// background so history is always a complete record of what was run.
+async function autoRecordAnalysis(){
+  if(!currentUser||!lastResult)return;
+  try{
+    const payload={
+      query:lastQuery,industry:industry,result:lastResult,
+      row_count:rawData?rawData.length:null,
+      col_count:rawData&&rawData[0]?Object.keys(rawData[0]).length:null,
+      columns:rawData&&rawData[0]?Object.keys(rawData[0]):[],
+      data_preview:rawData?rawData.slice(0,50):[],
+      save_as:'auto',
+    };
+    if(currentWorkspace&&currentWorkspace!=='personal')payload.workspace_id=currentWorkspace;
+    const r=await fetch(getUrl()+'/api/v1/auth/history',{method:'POST',
+      headers:authHeaders({'Content-Type':'application/json'}),body:JSON.stringify(payload)});
+    const d=await r.json();
+    if(d.success){savedThisResult=true;
+      const btn=document.getElementById('saveBtn');
+      if(btn){btn.classList.add('saved');const sl=btn.querySelector('.save-label');if(sl)sl.textContent='Saved';}
+    }
+  }catch(e){/* silent — auto-save shouldn't interrupt the user */}
 }
 
 async function doSave(saveAs,targetId){
@@ -2370,6 +2396,7 @@ async function runAnalysis(){
     lastFinanceResult=finResult;
     hideOv();
     renderAll(lastResult,finResult,rawData,q);
+    autoRecordAnalysis();  // silently keep every analysis in history
     toast('Analysis complete — '+getProviderLabel(lastResult.provider),'ok');
     switchPage('dashboard');
   }catch(err){
