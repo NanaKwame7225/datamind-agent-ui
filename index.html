@@ -106,7 +106,65 @@ h1,h2,h3,.font-head{font-family:'Inter Tight',sans-serif;font-weight:700;letter-
 .auth-guest-btn:hover{border-color:var(--accent);color:var(--accent)}
 .auth-note{font-size:10.5px;color:var(--text3);text-align:center;margin-top:12px;line-height:1.5}
 
-/* Workspace switcher + menus */
+/* Notebook */
+.nb-layout{max-width:840px;margin:0 auto;padding:32px 24px;width:100%}
+.nb-hero{text-align:center;margin-bottom:22px}
+.nb-hero h1{font-size:30px;font-weight:800;letter-spacing:-.03em;margin-bottom:8px}
+.nb-hero p{color:var(--text2);font-size:14px;max-width:560px;margin:0 auto;line-height:1.6}
+.nb-create-row{display:flex;gap:8px;margin-bottom:6px}
+.nb-list{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.nb-card{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:15px 17px;cursor:pointer;transition:border-color .15s}
+.nb-card:hover{border-color:var(--accent)}
+.nb-card-main{min-width:0;flex:1}
+.nb-card-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px}
+.nb-card-meta{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.nb-card-actions{display:flex;gap:6px;flex-shrink:0}
+.nb-card-del{background:none;border:1px solid var(--border);color:var(--text3);font-size:11px;font-weight:600;padding:5px 10px;border-radius:7px;cursor:pointer}
+.nb-card-del:hover{border-color:var(--red);color:var(--red)}
+.nb-empty{text-align:center;color:var(--text3);font-size:13px;padding:36px 16px;line-height:1.6}
+/* detail */
+.nb-detail-head{margin:14px 0 20px}
+.nb-title-input{width:100%;background:transparent;border:none;border-bottom:1px solid transparent;color:var(--text);font-size:24px;font-weight:800;letter-spacing:-.02em;font-family:inherit;padding:4px 0;outline:none}
+.nb-title-input:hover,.nb-title-input:focus{border-bottom-color:var(--border)}
+.nb-detail-meta{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:4px}
+.nb-cells{display:flex;flex-direction:column;gap:16px;margin-bottom:20px}
+.nb-cell{background:var(--card);border:1px solid var(--border);border-radius:13px;overflow:hidden}
+.nb-cell-q{display:flex;align-items:flex-start;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);background:var(--card2)}
+.nb-cell-qnum{font-size:11px;font-weight:700;color:var(--accent);font-family:'JetBrains Mono',monospace;margin-top:2px;flex-shrink:0}
+.nb-cell-qtext{flex:1;font-size:14px;font-weight:600;color:var(--text);line-height:1.5}
+.nb-cell-qactions{display:flex;gap:4px;flex-shrink:0}
+.nb-cell-icon{background:none;border:none;color:var(--text3);cursor:pointer;padding:4px;border-radius:5px}
+.nb-cell-icon:hover{color:var(--accent)}
+.nb-cell-icon.del:hover{color:var(--red)}
+.nb-cell-body{padding:16px}
+.nb-cell-answer{font-size:14px;line-height:1.7;color:var(--text);white-space:pre-wrap}
+.nb-cell-answer h1,.nb-cell-answer h2,.nb-cell-answer h3{font-size:15px;font-weight:700;margin:12px 0 6px}
+.nb-cell-answer strong{color:var(--text);font-weight:700}
+.nb-cell-running{display:flex;align-items:center;gap:10px;color:var(--text2);font-size:13px;padding:8px 0}
+.nb-spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:nbspin .8s linear infinite}
+@keyframes nbspin{to{transform:rotate(360deg)}}
+.nb-agents-toggle{margin-top:14px;border-top:1px solid var(--border);padding-top:12px}
+.nb-agents-btn{background:none;border:none;color:var(--text3);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;padding:0}
+.nb-agents-btn:hover{color:var(--accent)}
+.nb-agents-panel{margin-top:12px;display:none;flex-direction:column;gap:10px}
+.nb-agents-panel.open{display:flex}
+.nb-agent{background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:11px 13px}
+.nb-agent-head{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.nb-agent-label{font-size:12px;font-weight:700;color:var(--text)}
+.nb-agent-badge{font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;text-transform:uppercase}
+.nb-agent-badge.lead{background:rgba(0,200,190,.12);color:var(--accent)}
+.nb-agent-badge.down{background:rgba(255,90,90,.12);color:var(--red)}
+.nb-agent-findings{font-size:12.5px;line-height:1.6;color:var(--text2);white-space:pre-wrap}
+.nb-cell-err{color:var(--red);font-size:13px}
+.nb-cell-foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:10.5px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.nb-addcell{display:flex;gap:10px;align-items:flex-end;background:var(--card);border:1px solid var(--border);border-radius:13px;padding:14px}
+.nb-cell-input{flex:1;background:var(--card2);border:1px solid var(--border);border-radius:9px;color:var(--text);font-family:inherit;font-size:14px;padding:11px 13px;resize:vertical;outline:none}
+.nb-cell-input:focus{border-color:var(--accent)}
+.nb-run-btn{display:flex;align-items:center;gap:7px;background:var(--accent);color:#04121a;border:none;font-family:inherit;font-size:13px;font-weight:700;padding:11px 18px;border-radius:9px;cursor:pointer;white-space:nowrap}
+.nb-run-btn:hover{opacity:.9}
+.nb-run-btn:disabled{opacity:.5;cursor:not-allowed}
+.nb-run-note{text-align:center;font-size:11px;color:var(--text3);margin-top:10px}
+@media(max-width:600px){.nb-addcell{flex-direction:column;align-items:stretch}.nb-run-btn{justify-content:center}}
 .ws-switch{display:flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:12px;font-weight:600;padding:6px 10px;border-radius:9px;cursor:pointer;transition:all .15s}
 .ws-switch:hover{border-color:var(--accent)}
 .ws-switch svg{stroke:currentColor;fill:none;stroke-width:2}
@@ -577,6 +635,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
     <button class="nav-tab" data-page="forecast" onclick="switchPage('forecast',this)"><svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg><span>Forecast</span></button>
     <button class="nav-tab" data-page="insights" onclick="switchPage('insights',this)"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.5.5 1 1.3 1 2.3h6c0-1 .5-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg><span>Insights</span></button>
     <button class="nav-tab" data-page="scheduled" onclick="switchPage('scheduled',this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg><span>Scheduled</span></button>
+    <button class="nav-tab" data-page="notebook" onclick="switchPage('notebook',this)"><svg viewBox="0 0 24 24"><path d="M4 3h14a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H4z"/><line x1="9" y1="3" x2="9" y2="21"/></svg><span>Notebook</span></button>
   </div>
   <div class="nav-right">
     <div class="api-pill" onclick="checkHealth()" style="cursor:pointer" title="Click to re-check the backend"><div class="sdot wait" id="sdot"></div><span id="stext">Connecting</span></div>
@@ -1048,6 +1107,47 @@ tr:hover td{background:rgba(255,255,255,.02)}
     </div>
   </div>
 </div>
+
+<!-- NOTEBOOK PAGE -->
+<div class="page" id="page-notebook">
+  <div class="content-wrap">
+    <!-- List view: your notebooks -->
+    <div id="nbListView" class="nb-layout">
+      <div class="nb-hero">
+        <h1>Analysis <span class="font-serif">notebooks</span></h1>
+        <p>Build a living document of questions. Each one runs a panel of AI analysts — data quality, trends, and risk — synthesised into one expert answer.</p>
+      </div>
+      <div id="nbNeedData" class="sched-note" style="display:none"></div>
+      <div class="nb-create-row">
+        <input class="auth-input" id="nbNewTitle" placeholder="Notebook name — e.g. Q1 Revenue Review" style="flex:1">
+        <button class="ws-invite-btn" onclick="createNotebook()" id="nbCreateBtn">New notebook</button>
+      </div>
+      <div class="auth-msg" id="nbCreateMsg"></div>
+      <div class="section-head"><div class="section-title">Your notebooks</div><div class="section-line"></div><div class="section-count" id="nbCount"></div></div>
+      <div id="nbList" class="nb-list"></div>
+    </div>
+
+    <!-- Detail view: one open notebook with cells -->
+    <div id="nbDetailView" class="nb-layout" style="display:none">
+      <button class="ver-back" onclick="closeNotebook()">← All notebooks</button>
+      <div class="nb-detail-head">
+        <input class="nb-title-input" id="nbTitle" onblur="renameNotebook()" title="Click to rename">
+        <div class="nb-detail-meta" id="nbDetailMeta"></div>
+      </div>
+
+      <div id="nbCells" class="nb-cells"></div>
+
+      <div class="nb-addcell">
+        <textarea class="nb-cell-input" id="nbCellQuestion" rows="2" placeholder="Ask a question about your data… (e.g. Which region is most at risk of decline?)"></textarea>
+        <button class="nb-run-btn" id="nbRunBtn" onclick="runCell()">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <span>Run cell</span>
+        </button>
+      </div>
+      <div class="nb-run-note">Each cell runs 3 AI analysts in parallel, then synthesises — this can take 15–40 seconds.</div>
+    </div>
+  </div>
+</div>
 <div class="auth-backdrop" id="authBackdrop" onclick="if(event.target===this)closeAuth()">
   <div class="auth-modal" role="dialog" aria-modal="true">
     <button class="auth-x" onclick="closeAuth()" aria-label="Close">&times;</button>
@@ -1227,6 +1327,7 @@ function switchPage(page,btn){
   if(page==='dashboard'&&lastResult)setTimeout(()=>{if(filteredData)rebuildCharts(filteredData);},50);
   if(page==='forecast'&&(filteredData||rawData))initForecastPage(filteredData||rawData);
   if(page==='scheduled')initScheduledPage();
+  if(page==='notebook')initNotebookPage();
 }
 
 async function checkHealth(retry){
@@ -1404,6 +1505,224 @@ async function loadUrlSheet(name,btn){
   urlStatus('loading',`Loading sheet "${name}"…`);
   await parseUrl(currentUrl,name);
 }
+
+// ── NOTEBOOKS ──────────────────────────────────────────────────────────────
+let openNotebookId=null;
+
+async function initNotebookPage(){
+  if(!currentUser){
+    document.getElementById('nbList').innerHTML='<div class="nb-empty">Sign in to create analysis notebooks.</div>';
+    document.getElementById('nbNeedData').style.display='none';
+    return;
+  }
+  showNbList();
+  // show data availability for creating a notebook
+  const data=[uploadedData,rawData,filteredData].find(x=>Array.isArray(x)&&x.length>0);
+  const note=document.getElementById('nbNeedData');
+  if(data&&data.length){
+    note.style.display='';note.className='sched-note';
+    note.style.background='rgba(0,216,136,.08)';note.style.borderColor='rgba(0,216,136,.3)';note.style.color='var(--green)';
+    note.textContent=`✓ ${data.length} rows ready — new notebooks will analyse this data.`;
+  }else{
+    note.style.display='';note.className='sched-note';
+    note.style.background='';note.style.borderColor='';note.style.color='';
+    note.textContent='Upload data on the Analyse page first — a notebook is built on a dataset.';
+  }
+  loadNotebooks();
+}
+
+function showNbList(){document.getElementById('nbListView').style.display='';document.getElementById('nbDetailView').style.display='none';}
+function showNbDetail(){document.getElementById('nbListView').style.display='none';document.getElementById('nbDetailView').style.display='';}
+
+async function loadNotebooks(){
+  const list=document.getElementById('nbList');
+  list.innerHTML='<div class="nb-empty">Loading…</div>';
+  try{
+    const wsp=wsScopeParam();const q=wsp?('?workspace_id='+encodeURIComponent(wsp)):'';
+    const r=await fetch(getUrl()+'/api/v1/notebooks'+q,{headers:authHeaders()});
+    const d=await r.json();
+    if(!d.success||!d.items.length){
+      list.innerHTML='<div class="nb-empty">No notebooks yet.<br>Name one above and hit “New notebook”.</div>';
+      document.getElementById('nbCount').textContent='';return;
+    }
+    document.getElementById('nbCount').textContent=d.items.length+' notebook'+(d.items.length!==1?'s':'');
+    list.innerHTML=d.items.map(nb=>`
+      <div class="nb-card" onclick="openNotebook('${nb.id}')">
+        <div class="nb-card-main">
+          <div class="nb-card-title">${escapeHtml(nb.title)}</div>
+          <div class="nb-card-meta">${nb.cell_count} cell${nb.cell_count!==1?'s':''} · ${nb.row_count} rows · ${nb.industry}</div>
+        </div>
+        <div class="nb-card-actions">
+          <button class="nb-card-del" onclick="event.stopPropagation();deleteNotebook('${nb.id}')">Delete</button>
+        </div>
+      </div>`).join('');
+  }catch(e){list.innerHTML='<div class="nb-empty">Could not load notebooks.</div>';}
+}
+
+async function createNotebook(){
+  if(!currentUser){openAuth();return;}
+  const data=[uploadedData,rawData,filteredData].find(x=>Array.isArray(x)&&x.length>0);
+  const msg=document.getElementById('nbCreateMsg');
+  if(!data||!data.length){msg.textContent='Upload data on the Analyse page first.';msg.className='auth-msg err';return;}
+  const title=document.getElementById('nbNewTitle').value.trim()||'Untitled notebook';
+  const btn=document.getElementById('nbCreateBtn');btn.disabled=true;btn.textContent='Creating…';
+  try{
+    const r=await fetch(getUrl()+'/api/v1/notebooks',{method:'POST',headers:authHeaders({'Content-Type':'application/json'}),
+      body:JSON.stringify({title,data:data.slice(0,5000),columns:data[0]?Object.keys(data[0]):[],industry:industry||'general',workspace_id:wsScopeParam()})});
+    const d=await r.json();
+    if(!d.success){msg.textContent=d.error||'Could not create.';msg.className='auth-msg err';return;}
+    document.getElementById('nbNewTitle').value='';msg.textContent='';
+    openNotebook(d.id);
+  }catch(e){msg.textContent='Could not reach the server.';msg.className='auth-msg err';}
+  finally{btn.disabled=false;btn.textContent='New notebook';}
+}
+
+async function deleteNotebook(id){
+  if(!confirm('Delete this notebook and all its cells? This cannot be undone.'))return;
+  try{
+    const wsp=wsScopeParam();const q=wsp?('?workspace_id='+encodeURIComponent(wsp)):'';
+    const r=await fetch(getUrl()+'/api/v1/notebooks/'+id+q,{method:'DELETE',headers:authHeaders()});
+    const d=await r.json();
+    if(d.success){loadNotebooks();toast('Notebook deleted','ok');}
+    else toast(d.error||'Could not delete','err');
+  }catch(e){toast('Could not delete','err');}
+}
+
+async function openNotebook(id){
+  openNotebookId=id;
+  showNbDetail();
+  document.getElementById('nbCells').innerHTML='<div class="nb-empty">Loading…</div>';
+  try{
+    const wsp=wsScopeParam();const q=wsp?('?workspace_id='+encodeURIComponent(wsp)):'';
+    const r=await fetch(getUrl()+'/api/v1/notebooks/'+id+q,{headers:authHeaders()});
+    const d=await r.json();
+    if(!d.success){document.getElementById('nbCells').innerHTML='<div class="nb-empty">'+(d.error||'Could not load.')+'</div>';return;}
+    const nb=d.notebook;
+    document.getElementById('nbTitle').value=nb.title;
+    document.getElementById('nbDetailMeta').textContent=`${nb.row_count} rows · ${nb.col_count} cols · ${nb.industry}`;
+    renderCells(nb.cells||[]);
+  }catch(e){document.getElementById('nbCells').innerHTML='<div class="nb-empty">Could not load notebook.</div>';}
+}
+function closeNotebook(){openNotebookId=null;showNbList();loadNotebooks();}
+
+function renderCells(cells){
+  const box=document.getElementById('nbCells');
+  if(!cells.length){box.innerHTML='<div class="nb-empty">No cells yet. Ask your first question below.</div>';return;}
+  box.innerHTML=cells.map((c,i)=>cellHtml(c,i+1)).join('');
+}
+
+function cellHtml(c,num){
+  const agents=(c.agents||[]);
+  const agentPanel=agents.length?`
+    <div class="nb-agents-toggle">
+      <button class="nb-agents-btn" onclick="toggleAgents('${c.id}')">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        How the analysts reasoned (${agents.filter(a=>a.ok).length}/${agents.length})
+      </button>
+      <div class="nb-agents-panel" id="agents-${c.id}">
+        ${agents.map(a=>`
+          <div class="nb-agent">
+            <div class="nb-agent-head">
+              <span class="nb-agent-label">${escapeHtml(a.label)}</span>
+              ${a.agent===c.emphasis?'<span class="nb-agent-badge lead">lead</span>':''}
+              ${!a.ok?'<span class="nb-agent-badge down">unavailable</span>':''}
+            </div>
+            <div class="nb-agent-findings">${a.ok?escapeHtml(a.findings||''):escapeHtml('Could not run: '+(a.error||'provider error'))}</div>
+          </div>`).join('')}
+      </div>
+    </div>`:'';
+  const body=c.ok
+    ? `<div class="nb-cell-answer">${renderMarkdown(c.answer||'')}</div>${agentPanel}
+       <div class="nb-cell-foot"><span>${c.provider||''}</span></div>`
+    : `<div class="nb-cell-err">${escapeHtml(c.error||'This cell could not be analysed.')}</div>`;
+  return `<div class="nb-cell" id="cell-${c.id}">
+    <div class="nb-cell-q">
+      <span class="nb-cell-qnum">[${num}]</span>
+      <span class="nb-cell-qtext">${escapeHtml(c.question)}</span>
+      <span class="nb-cell-qactions">
+        <button class="nb-cell-icon" onclick="rerunCell('${c.id}')" title="Re-run"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.9-3.4L23 10M1 14l4.6 4.4A9 9 0 0 0 20.5 15"/></svg></button>
+        <button class="nb-cell-icon del" onclick="deleteCell('${c.id}')" title="Delete"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></svg></button>
+      </span>
+    </div>
+    <div class="nb-cell-body">${body}</div>
+  </div>`;
+}
+
+function toggleAgents(cid){document.getElementById('agents-'+cid).classList.toggle('open');}
+
+function renderMarkdown(t){
+  // light markdown: bold, headers, line breaks
+  return escapeHtml(t)
+    .replace(/^### (.*)$/gm,'<h3>$1</h3>')
+    .replace(/^## (.*)$/gm,'<h2>$1</h2>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\n/g,'<br>');
+}
+
+async function runCell(){
+  if(!openNotebookId)return;
+  const q=document.getElementById('nbCellQuestion').value.trim();
+  if(!q){toast('Type a question first','err');return;}
+  const btn=document.getElementById('nbRunBtn');btn.disabled=true;
+  // optimistic running cell
+  const cells=document.getElementById('nbCells');
+  if(cells.querySelector('.nb-empty'))cells.innerHTML='';
+  const tempId='running';
+  const num=cells.querySelectorAll('.nb-cell').length+1;
+  cells.insertAdjacentHTML('beforeend',`<div class="nb-cell" id="cell-running">
+    <div class="nb-cell-q"><span class="nb-cell-qnum">[${num}]</span><span class="nb-cell-qtext">${escapeHtml(q)}</span></div>
+    <div class="nb-cell-body"><div class="nb-cell-running"><div class="nb-spinner"></div>Running 3 analysts + synthesis…</div></div>
+  </div>`);
+  document.getElementById('cell-running').scrollIntoView({behavior:'smooth',block:'center'});
+  try{
+    const r=await fetch(getUrl()+'/api/v1/notebooks/'+openNotebookId+'/cells',{method:'POST',
+      headers:authHeaders({'Content-Type':'application/json'}),body:JSON.stringify({question:q,workspace_id:wsScopeParam()})});
+    const d=await r.json();
+    document.getElementById('cell-running').remove();
+    if(!d.success){toast(d.error||'Cell failed','err');btn.disabled=false;return;}
+    document.getElementById('nbCellQuestion').value='';
+    // re-fetch to render in order
+    await openNotebook(openNotebookId);
+    document.getElementById('nbCells').lastElementChild?.scrollIntoView({behavior:'smooth',block:'center'});
+  }catch(e){
+    const rc=document.getElementById('cell-running');if(rc)rc.remove();
+    toast('Could not run cell — the server may be busy','err');
+  }finally{btn.disabled=false;}
+}
+
+async function rerunCell(cid){
+  const cellBody=document.querySelector('#cell-'+cid+' .nb-cell-body');
+  if(cellBody)cellBody.innerHTML='<div class="nb-cell-running"><div class="nb-spinner"></div>Re-running analysts…</div>';
+  try{
+    const r=await fetch(getUrl()+'/api/v1/notebooks/'+openNotebookId+'/cells/'+cid+'/rerun',{method:'POST',
+      headers:authHeaders({'Content-Type':'application/json'}),body:JSON.stringify({workspace_id:wsScopeParam()})});
+    const d=await r.json();
+    if(d.success){await openNotebook(openNotebookId);toast('Cell re-run','ok');}
+    else toast(d.error||'Re-run failed','err');
+  }catch(e){toast('Could not re-run','err');}
+}
+
+async function deleteCell(cid){
+  try{
+    const wsp=wsScopeParam();const q=wsp?('?workspace_id='+encodeURIComponent(wsp)):'';
+    const r=await fetch(getUrl()+'/api/v1/notebooks/'+openNotebookId+'/cells/'+cid+q,{method:'DELETE',headers:authHeaders()});
+    const d=await r.json();
+    if(d.success){document.getElementById('cell-'+cid)?.remove();toast('Cell deleted','ok');
+      if(!document.querySelectorAll('#nbCells .nb-cell').length)renderCells([]);}
+    else toast(d.error||'Could not delete','err');
+  }catch(e){toast('Could not delete cell','err');}
+}
+
+async function renameNotebook(){
+  if(!openNotebookId)return;
+  const title=document.getElementById('nbTitle').value.trim();
+  if(!title)return;
+  try{
+    await fetch(getUrl()+'/api/v1/notebooks/'+openNotebookId,{method:'PATCH',
+      headers:authHeaders({'Content-Type':'application/json'}),body:JSON.stringify({title,workspace_id:wsScopeParam()})});
+  }catch(e){}
+}
+// ── NOTEBOOKS end ──────────────────────────────────────────────────────────
 
 // ── SCHEDULED REPORTS ──────────────────────────────────────────────────────
 let channelStatus={email:false,sms:false};
