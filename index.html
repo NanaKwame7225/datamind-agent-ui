@@ -944,8 +944,9 @@ tr:hover td{background:rgba(255,255,255,.02)}
           <label class="sched-chan"><input type="checkbox" checked disabled> In-app <span>(always saved to history)</span></label>
           <label class="sched-chan"><input type="checkbox" id="chanEmail" onchange="toggleChan('email')"> Email</label>
           <input class="auth-input sched-chan-input" id="chanEmailTo" placeholder="you@example.com" style="display:none">
-          <label class="sched-chan"><input type="checkbox" id="chanSms" onchange="toggleChan('sms')"> SMS</label>
-          <input class="auth-input sched-chan-input" id="chanSmsTo" placeholder="+233 55 xxx xxxx" style="display:none">
+          <label class="sched-chan"><input type="checkbox" id="chanSms" onchange="toggleChan('sms')"> SMS <span>(one or more numbers)</span></label>
+          <input class="auth-input sched-chan-input" id="chanSmsTo" placeholder="+233 55 xxx xxxx, +233 24 xxx xxxx" style="display:none">
+          <div class="sched-chan-note" id="smsMultiNote" style="display:none;margin-left:23px">Separate multiple numbers with commas.</div>
           <div class="sched-chan-note" id="chanNote"></div>
         </div>
 
@@ -1327,6 +1328,7 @@ function onFreqChange(){
 function toggleChan(which){
   const on=document.getElementById(which==='email'?'chanEmail':'chanSms').checked;
   document.getElementById(which==='email'?'chanEmailTo':'chanSmsTo').style.display=on?'':'none';
+  if(which==='sms'){const mn=document.getElementById('smsMultiNote');if(mn)mn.style.display=on?'':'none';}
   // Warn if channel isn't configured on the server
   const note=document.getElementById('chanNote');
   if(on&&which==='email'&&!channelStatus.email)
@@ -1405,6 +1407,12 @@ async function createSchedule(){
   finally{btn.disabled=false;btn.textContent='Schedule report';}
 }
 
+function smsChipLabel(v){
+  if(!v)return '(no number)';
+  const nums=String(v).split(/[,;\s]+/).map(x=>x.trim()).filter(Boolean);
+  if(nums.length<=1)return escapeHtml(nums[0]||'(no number)');
+  return escapeHtml(nums[0])+' +'+(nums.length-1)+' more';
+}
 function fmtWhen(iso){
   if(!iso)return 'soon';
   const d=new Date(iso);
@@ -1432,7 +1440,7 @@ async function loadSchedules(){
         `<span class="sched-chip">${s.frequency}</span>`,
         `<span class="sched-chip">${s.row_count} rows</span>`,
         ch.email?`<span class="sched-chip email">✉ ${escapeHtml(ch.email_to||'(no address)')}</span>`:'',
-        ch.sms?`<span class="sched-chip sms">☎ ${escapeHtml(ch.sms_to||'(no number)')}</span>`:'',
+        ch.sms?`<span class="sched-chip sms">☎ ${smsChipLabel(ch.sms_to)}</span>`:'',
         s.run_count?`<span class="sched-chip">ran ${s.run_count}×</span>`:'',
         s.last_status?`<span class="sched-chip" style="color:${/\(|fail|error|needs/.test(s.last_status)?'var(--red)':'var(--green)'}">${escapeHtml(s.last_status)}</span>`:'',
       ].filter(Boolean).join('');
