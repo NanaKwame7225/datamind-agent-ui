@@ -3322,6 +3322,9 @@ function fmtNum(v){
   return (Math.round(v*100)/100).toLocaleString();
 }
 function pretty(s){return String(s).replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());}
+// Data VALUES must render exactly as they appear in the uploaded file — never
+// title-cased or reworded. (pretty() is for column headers only.)
+function val(v){return v==null?'':String(v);}
 
 // Profile the dataset so chart choice is grounded in structure, not guesswork
 function profileData(data){
@@ -3470,10 +3473,10 @@ function chartPie(data,P,add,idx,metric){
 
   add(
     `${pretty(metric)} by ${pretty(P.pieCat.name)}`,
-    `${pretty(lead[0])} holds the largest share at ${leadPct}% of the ${fmtNum(total)} total.`,
+    `${val(lead[0])} holds the largest share at ${leadPct}% of the ${fmtNum(total)} total.`,
     `c${idx}`,
     [{
-      labels:top.map(r=>pretty(r[0])),
+      labels:top.map(r=>val(r[0])),
       values:top.map(r=>r[1]),
       type:'pie',hole:0.58,
       marker:{colors:PALETTE.slice(0,top.length),line:{color:'#0b1221',width:2.5}},
@@ -3505,6 +3508,35 @@ function chartPie(data,P,add,idx,metric){
   return idx+1;
 }
 
+// Top individual records — the actual rows from the file (game names, customer
+// names, SKUs). High-cardinality columns can't be grouped into a readable bar
+// chart, but the TOP N of them is exactly what people want to see.
+function chartTopRecords(data,P,add,idx,metric){
+  if(!metric)return idx;
+  // The identifying column: high-cardinality text (a name/title/id label)
+  const idCol=(P.cat||[]).filter(c=>c.cardinality>20)
+    .sort((a,b)=>b.cardinality-a.cardinality)[0];
+  if(!idCol)return idx;
+  const rows=groupSum(data,idCol.name,metric).slice(0,10);
+  if(rows.length<2)return idx;
+  const rev=[...rows].reverse();
+  add(
+    `Top ${rows.length} ${pretty(idCol.name)} by ${pretty(metric)}`,
+    `The individual ${pretty(idCol.name).toLowerCase()} entries from your file — ${val(rows[0][0])} leads with ${fmtNum(rows[0][1])}.`,
+    `c${idx}`,
+    [{
+      x:rev.map(r=>r[1]),y:rev.map(r=>val(r[0])),type:'bar',orientation:'h',
+      marker:{color:rev.map(r=>r[1]),colorscale:SEQ_TEAL,line:{color:'rgba(255,255,255,.10)',width:1}},
+      hovertemplate:'%{y}<br>'+pretty(metric)+': %{x:,.2f}<extra></extra>',
+      text:rev.map(r=>fmtNum(r[1])),textposition:'outside',
+      textfont:{color:'#7d93b3',size:9,family:'JetBrains Mono'},
+    }],
+    {...getLayout(250),margin:{l:150,r:40,t:8,b:34}},
+    'xtall',{kind:'ranked bar'}
+  );
+  return idx+1;
+}
+
 function chartRanking(data,P,add,idx,metric){
   const cat=P.groupCat||P.pieCat;
   if(!cat||!metric)return idx;
@@ -3516,10 +3548,10 @@ function chartRanking(data,P,add,idx,metric){
   const h=rows.length>6?250:rows.length>4?215:190;
   add(
     `${pretty(cat.name)} Ranked by ${pretty(metric)}`,
-    `${pretty(top[0])} leads with ${fmtNum(top[1])}. Bar length is proportional to value.`,
+    `Each bar is one ${pretty(cat.name).toLowerCase()} from your file (${cat.cardinality} distinct). ${val(top[0])} leads with ${fmtNum(top[1])} total ${pretty(metric).toLowerCase()}.`,
     `c${idx}`,
     [{
-      x:rows.map(r=>r[1]),y:rows.map(r=>pretty(r[0])),type:'bar',orientation:'h',
+      x:rows.map(r=>r[1]),y:rows.map(r=>val(r[0])),type:'bar',orientation:'h',
       marker:{color:rows.map(r=>r[1]),colorscale:SEQ_TEAL,
         line:{color:'rgba(255,255,255,.10)',width:1}},
       text:rows.map(r=>fmtNum(r[1])),
@@ -3608,7 +3640,7 @@ function chartGrouped(data,P,add,idx,metric){
   const lead=rows[0];
   add(
     `${pretty(metric)} by ${pretty(cat.name)}`,
-    `Average per group. ${pretty(lead[0])} leads at ${((lead[1]/overall-1)*100).toFixed(1)}% above the overall mean.`,
+    `Average per group. ${val(lead[0])} leads at ${((lead[1]/overall-1)*100).toFixed(1)}% above the overall mean.`,
     `c${idx}`,
     rows.map(([n,v],i)=>({x:[pretty(n)],y:[v],type:'bar',name:pretty(n),
       marker:{color:PALETTE[i%PALETTE.length],line:{color:'rgba(255,255,255,.08)',width:1}},
@@ -3719,7 +3751,7 @@ function chartTreemap(data,P,add,idx,metric){
     `${pretty(metric)} — Share by ${pretty(cat.name)}`,
     'Rectangle area is proportional to value. Bigger block means bigger contribution.',
     `c${idx}`,
-    [{type:'treemap',labels:rows.map(r=>pretty(r[0])),values:rows.map(r=>r[1]),
+    [{type:'treemap',labels:rows.map(r=>val(r[0])),values:rows.map(r=>r[1]),
       parents:rows.map(()=>''),
       marker:{colors:PALETTE,line:{color:'#0b1221',width:2}},
       textinfo:'label+value+percent root',
@@ -3738,7 +3770,7 @@ function chartFunnel(data,P,add,idx,metric){
     `${pretty(metric)} — Funnel`,
     'Each stage as a proportion of the largest. Narrowing shows where value falls away.',
     `c${idx}`,
-    [{type:'funnel',y:rows.map(r=>pretty(r[0])),x:rows.map(r=>r[1]),
+    [{type:'funnel',y:rows.map(r=>val(r[0])),x:rows.map(r=>r[1]),
       marker:{color:PALETTE,line:{color:'#0b1221',width:2}},
       textinfo:'value+percent initial',
       textfont:{color:'#e8f0fa',size:11,family:'Inter Tight'},
@@ -3807,6 +3839,7 @@ function buildQueryAwareCharts(data,g,off,intents,query){
 
   // Map builder names to their functions, so an explicit request can call any of them
   const BUILDERS={
+    records:    ()=>chartTopRecords(data,P,add,idx,metric),
     trend:      ()=>chartTrend(data,P,add,idx),
     pie:        ()=>chartPie(data,P,add,idx,metric),
     rank:       ()=>chartRanking(data,P,add,idx,metric),
@@ -3837,6 +3870,7 @@ function buildQueryAwareCharts(data,g,off,intents,query){
     run('treemap',()=>chartTreemap(data,P,add,idx,metric));
   }
   if(has('ranking')||has('comparison')){
+    run('records',()=>chartTopRecords(data,P,add,idx,metric));
     run('rank',()=>chartRanking(data,P,add,idx,metric));
     run('grouped',()=>chartGrouped(data,P,add,idx,metric));
   }
