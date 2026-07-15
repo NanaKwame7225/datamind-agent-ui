@@ -2983,7 +2983,16 @@ async function runAnalysis(){
   const btn=document.getElementById('runBtn');btn.disabled=true;btn.innerHTML='<div class="spin"></div> Analysing...';
   showOv();
   rawData=uploadedData||SAMPLES[industry]||SAMPLES.general;filteredData=[...rawData];
-  const payload={query:q,industry,provider:'anthropic',inline_data:rawData,enable_viz:true,enable_anomaly_detection:true,enable_forecast:rawData.length>=20,conversation_history:[],session_id:sessionId};
+  // Large datasets make the upload (and the wait) huge — 16k rows is ~3.4MB over
+  // the wire. Send a capped, evenly-spread sample: statistically sound, far faster.
+  const MAX_UPLOAD=4000;
+  let sendData=rawData;
+  if(rawData.length>MAX_UPLOAD){
+    const step=rawData.length/MAX_UPLOAD;
+    sendData=[];
+    for(let i=0;i<MAX_UPLOAD;i++)sendData.push(rawData[Math.floor(i*step)]);
+  }
+  const payload={query:q,industry,provider:'anthropic',inline_data:sendData,enable_viz:true,enable_anomaly_detection:true,enable_forecast:sendData.length>=20,conversation_history:[],session_id:sessionId};
   try{
     setTimeout(()=>stepOv(2),1200);setTimeout(()=>stepOv(3),3000);setTimeout(()=>stepOv(4),5000);
     // If the backend is slow (cold start / LLM chain), tell the user rather than
@@ -3265,15 +3274,31 @@ function groupMean(data,catCol,valCol){
 
 function chartTrend(data,P,add,idx){
   if(!P.num.length)return idx;
-  const labels=data.map(r=>r[P.labelCol]??'');
+  // Plotting every row melts the chart (and the browser) on big datasets.
+  // Downsample to a readable number of points, evenly across the data.
+  const MAX_PTS=250;
+  let rows=data;
+  if(data.length>MAX_PTS){
+    const step=data.length/MAX_PTS;
+    rows=[];
+    for(let i=0;i<MAX_PTS;i++)rows.push(data[Math.floor(i*step)]);
+  }
+  const many=data.length>MAX_PTS;
+  const labels=rows.map(r=>r[P.labelCol]??'');
   const cols=P.num.slice(0,4);
   const tr=cols.map((k,i)=>({
-    x:labels,y:data.map(r=>r[k]),type:'scatter',mode:'lines+markers',name:pretty(k),
-    line:{color:PALETTE[i],width:2.5,shape:'spline'},
-    marker:{size:6,color:PALETTE[i],line:{width:1.5,color:'rgba(255,255,255,.3)'}},
+    x:labels,y:rows.map(r=>r[k]),type:'scatter',
+    mode:many?'lines':'lines+markers',           // markers only when few points
+    name:pretty(k),
+    line:{color:PALETTE[i],width:2.5,shape:many?'linear':'spline'},
+    marker:many?undefined:{size:6,color:PALETTE[i],line:{width:1.5,color:'rgba(255,255,255,.3)'}},
     hovertemplate:'%{x}<br>'+pretty(k)+': %{y:,.0f}<extra></extra>',
   }));
-  add('Trend Over Time','Each line is one metric. Steeper slope means faster change.',`c${idx}`,tr,null,null,{wide:true,kind:'line'});
+  const sub=many
+    ? `Each line is one metric. Showing ${MAX_PTS} evenly-sampled points of ${data.length.toLocaleString()} rows.`
+    : 'Each line is one metric. Steeper slope means faster change.';
+  add('Trend Over Time',sub,`c${idx}`,tr,
+    many?{xaxis:{showticklabels:false}}:null,null,{wide:true,kind:'line'});
   return idx+1;
 }
 
@@ -3499,16 +3524,25 @@ function chartScatter(data,P,add,idx){
   if(P.num.length<2)return idx;
   const [x,y]=P.num;
   const size=P.num[2]||null;
-  const labels=data.map(r=>r[P.labelCol]??'');
+  // Cap markers — tens of thousands of points stall the browser and read as noise.
+  const MAX_PTS=1200;
+  let rows=data;
+  if(data.length>MAX_PTS){
+    const step=data.length/MAX_PTS;
+    rows=[];
+    for(let i=0;i<MAX_PTS;i++)rows.push(data[Math.floor(i*step)]);
+  }
+  const sampled=data.length>MAX_PTS;
+  const labels=rows.map(r=>r[P.labelCol]??'');
   const tr={
-    x:data.map(r=>r[x]),y:data.map(r=>r[y]),mode:'markers',type:'scatter',text:labels,
+    x:rows.map(r=>r[x]),y:rows.map(r=>r[y]),mode:'markers',type:'scatter',text:labels,
     hovertemplate:'%{text}<br>'+pretty(x)+': %{x:,.0f}<br>'+pretty(y)+': %{y:,.0f}<extra></extra>',
-    marker:{size:size?data.map(r=>Math.max(8,Math.min(34,Math.sqrt(Math.abs(r[size]))/2))):13,
-      color:size?data.map(r=>r[size]):'#00c8be',
+    marker:{size:size?rows.map(r=>Math.max(8,Math.min(34,Math.sqrt(Math.abs(r[size]))/2))):(sampled?7:13),
+      color:size?rows.map(r=>r[size]):'#00c8be',
       colorscale:size?SEQ_TEAL:undefined,showscale:!!size,
       colorbar:size?{title:{text:pretty(size),font:{color:'#6a85aa',size:9}},
         tickfont:{color:'#6a85aa',size:9},thickness:9}:undefined,
-      line:{width:1,color:'rgba(255,255,255,.25)'},opacity:0.85},
+      line:{width:1,color:'rgba(255,255,255,.25)'},opacity:sampled?0.6:0.85},
   };
   add(
     `${pretty(x)} vs ${pretty(y)}`,
