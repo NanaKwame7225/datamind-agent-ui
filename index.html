@@ -1244,7 +1244,7 @@ const QUERY_INTENTS = {
   trend:['trend','over time','changing','growing','declining','increasing','decreasing','forecast','predict','trajectory','momentum'],
   comparison:['compare','vs','versus','difference','better','worse','best','worst','top','bottom','rank','against'],
   composition:['composition','share','proportion','percentage','percent','make up','made up','portion','slice','contribution','mix','distribution across','breakdown of','split of','how much of'],
-  ranking:['top','bottom','highest','lowest','biggest','smallest','leading','lagging','best performing','worst performing','rank','leaderboard'],
+  ranking:['top','bottom','highest','lowest','biggest','smallest','leading','lagging','best performing','worst performing','rank','leaderboard','dominat','most','least','best','worst','which ','who ','sold the most','sells the most','strongest','weakest','maximum','minimum','max ','min ','first','last','popular','favourite','favorite','outperform','underperform','ahead','behind'],
   correlation:['correlat','relationship','related','associate','link','connect','drive','driver','influence','depend','affect','impact of'],
   distribution:['distribut','spread','range','variance','variation','dispersion','histogram','how varied','consistency'],
   flow:['waterfall','bridge','contribution to','build up','walk through','bridge from','period on period','month on month','what changed'],
@@ -3334,9 +3334,20 @@ function pickMetric(q,num){
   const ql=(q||'').toLowerCase();
   const named=num.find(c=>ql.includes(c.toLowerCase().replace(/_/g,' '))||ql.includes(c.toLowerCase()));
   if(named)return named;
-  for(const kw of ['revenue','sales','profit','income','amount','total','value','score','cost','spend'])
-    if(ql.includes(kw)){const m=num.find(c=>c.toLowerCase().includes(kw));if(m)return m;}
-  const priority=num.find(c=>/revenue|sales|profit|total|amount/i.test(c));
+  // Prefer an aggregate column (global/total/overall) over a partial one:
+  // asking about "sales" means Global_Sales, not NA_Sales.
+  const preferWhole=(cands)=>{
+    if(!cands.length)return null;
+    const whole=cands.find(c=>/global|total|overall|combined|all_|_all|gross|net/i.test(c));
+    return whole||cands[0];
+  };
+  for(const kw of ['revenue','sales','profit','income','amount','total','value','score','cost','spend']){
+    if(ql.includes(kw)){
+      const m=preferWhole(num.filter(c=>c.toLowerCase().includes(kw)));
+      if(m)return m;
+    }
+  }
+  const priority=preferWhole(num.filter(c=>/revenue|sales|profit|total|amount/i.test(c)));
   return priority||num[0];
 }
 
@@ -3383,8 +3394,13 @@ function chartTrend(data,P,add,idx){
   const sub=many
     ? `Each line is one metric. Showing ${MAX_PTS} evenly-sampled points of ${data.length.toLocaleString()} rows.`
     : 'Each line is one metric. Steeper slope means faster change.';
-  add('Trend Over Time',sub,`c${idx}`,tr,
-    many?{xaxis:{showticklabels:false}}:null,null,{wide:true,kind:'line'});
+  // Merge into the base layout — passing a bare object would drop height/margins
+  // and render an empty box.
+  const base=getLayout();
+  const ly=many
+    ? {...base, xaxis:{...base.xaxis, showticklabels:false}}
+    : null;
+  add('Trend Over Time',sub,`c${idx}`,tr,ly,null,{wide:true,kind:'line'});
   return idx+1;
 }
 
