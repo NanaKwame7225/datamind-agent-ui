@@ -3343,7 +3343,29 @@ function profileData(data){
   const pieCat=cat.filter(c=>c.cardinality>=2&&c.cardinality<=8).sort((a,b)=>a.cardinality-b.cardinality)[0]||null;
   // Best grouping categorical for bars (2..20)
   const groupCat=cat.filter(c=>c.cardinality>=2&&c.cardinality<=20).sort((a,b)=>b.cardinality-a.cardinality)[0]||null;
-  return {keys,num,cat,timeCol,pieCat,groupCat,labelCol:timeCol||(cat[0]&&cat[0].name)||keys[0]};
+
+  // Order numeric columns by how much they're worth analysing, so charts that
+  // grab "the first metric" get a real one — not an id, a row number, or a
+  // constant. This is what makes the no-query dashboard sensible by default.
+  const score=(k)=>{
+    const vals=data.map(r=>r[k]).filter(v=>typeof v==='number');
+    const distinct=new Set(vals).size;
+    let s=0;
+    if(/global|total|overall|combined|gross|net/i.test(k))s+=6;      // aggregates lead
+    if(/sales|revenue|profit|amount|value|income|spend|cost|price|count|qty|quantity/i.test(k))s+=5;
+    if(/score|rating|margin|ratio|rate|pct|percent/i.test(k))s+=2;
+    if(/^rank$|^id$|_id$|index|^no$|^number$|code/i.test(k))s-=8;    // identifiers are not metrics
+    if(/year|date|month|day/i.test(k))s-=4;                          // time is an axis, not a metric
+    if(distinct<=1)s-=10;                                            // constant column says nothing
+    if(distinct<=3)s-=3;
+    return s;
+  };
+  const numRanked=[...num].sort((a,b)=>score(b)-score(a));
+  // Columns worth plotting at all (drop constants and pure identifiers)
+  const numUseful=numRanked.filter(k=>score(k)>-5);
+
+  return {keys,num:numRanked,numAll:num,numUseful,cat,timeCol,pieCat,groupCat,
+          labelCol:timeCol||(cat[0]&&cat[0].name)||keys[0]};
 }
 
 // Which numeric column does the query actually care about?
@@ -3412,7 +3434,7 @@ function chartTrend(data,P,add,idx){
   }
   const many=data.length>MAX_PTS;
   const labels=rows.map(r=>r[P.labelCol]??'');
-  const cols=P.num.slice(0,4);
+  const cols=((P.numUseful&&P.numUseful.length)?P.numUseful:P.num).slice(0,4);
   const tr=cols.map((k,i)=>({
     x:labels,y:rows.map(r=>r[k]),type:'scatter',
     mode:many?'lines':'lines+markers',           // markers only when few points
@@ -3653,9 +3675,11 @@ function chartDistribution(data,P,add,idx){
 }
 
 function chartScatter(data,P,add,idx){
-  if(P.num.length<2)return idx;
-  const [x,y]=P.num;
-  const size=P.num[2]||null;
+  // Use analytically useful columns only — a scatter of Rank vs Year says nothing.
+  const useful=(P.numUseful&&P.numUseful.length>=2)?P.numUseful:P.num;
+  if(useful.length<2)return idx;
+  const [x,y]=useful;
+  const size=useful[2]||null;
   // Cap markers — tens of thousands of points stall the browser and read as noise.
   const MAX_PTS=1200;
   let rows=data;
@@ -3783,6 +3807,7 @@ function buildQueryAwareCharts(data,g,off,intents,query){
 
   // Map builder names to their functions, so an explicit request can call any of them
   const BUILDERS={
+    trend:      ()=>chartTrend(data,P,add,idx),
     pie:        ()=>chartPie(data,P,add,idx,metric),
     rank:       ()=>chartRanking(data,P,add,idx,metric),
     waterfall:  ()=>chartWaterfall(data,P,add,idx,metric),
@@ -3819,6 +3844,7 @@ function buildQueryAwareCharts(data,g,off,intents,query){
     run('anomaly',()=>chartAnomaly(data,P,add,idx,metric));
   }
   if(has('trend')){
+    run('trend',()=>chartTrend(data,P,add,idx));
     run('waterfall',()=>chartWaterfall(data,P,add,idx,metric));
   }
   if(has('correlation')){
