@@ -3371,6 +3371,18 @@ function groupMean(data,catCol,valCol){
 
 function chartTrend(data,P,add,idx){
   if(!P.num.length)return idx;
+  // A trend needs a real axis to move along. If every row shares the same
+  // period (or there are too few distinct points), a line chart says nothing —
+  // skip it rather than render an empty box.
+  const xVals=data.map(r=>r[P.labelCol]);
+  const distinctX=new Set(xVals.filter(v=>v!=null&&v!=='')).size;
+  if(distinctX<3)return idx;
+  // If a date/period column exists, check it actually varies.
+  const timeCol=P.dateCol||Object.keys(data[0]||{}).find(c=>/year|date|month|period|quarter|week|day/i.test(c));
+  if(timeCol){
+    const distinctT=new Set(data.map(r=>r[timeCol]).filter(v=>v!=null&&v!=='')).size;
+    if(distinctT<2)return idx;   // one single period — nothing to trend
+  }
   // Plotting every row melts the chart (and the browser) on big datasets.
   // Downsample to a readable number of points, evenly across the data.
   const MAX_PTS=250;
