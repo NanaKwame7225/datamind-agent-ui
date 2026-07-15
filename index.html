@@ -569,6 +569,7 @@ body.theme-light .slicers-bar{box-shadow:0 8px 28px rgba(0,0,0,.12)}
 #sqlResult .table-wrap::-webkit-scrollbar-thumb:hover{background:var(--accent)}
 #sqlResult .table-wrap{scrollbar-width:thin;scrollbar-color:var(--border) var(--card2)}
 .sql-result-card{min-width:0;overflow:hidden}
+.ds-badge{font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--accent);background:rgba(0,200,190,.08);border:1px solid rgba(0,200,190,.28);border-radius:5px;padding:2px 7px;white-space:nowrap}
 /* Tables inside the AI answer — specific records, scrollable */
 .nar-table-wrap{overflow-x:auto;max-height:340px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r);margin:12px 0;-webkit-overflow-scrolling:touch}
 .nar-table{width:100%;border-collapse:collapse;font-size:12px;font-family:'JetBrains Mono',monospace}
@@ -886,7 +887,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
           <div class="rail-body" id="slicersRow"></div>
         </aside>
       </div>
-      <div class="section-head"><div class="section-title">Data sample <span id="previewFilter" style="color:var(--accent);font-weight:400;text-transform:none;letter-spacing:0"></span></div><div class="section-line"></div></div>
+      <div class="section-head"><div class="section-title">Data sample <span id="previewFilter" style="color:var(--accent);font-weight:400;text-transform:none;letter-spacing:0"></span></div><div class="section-line"></div><span id="dsBadge" class="ds-badge" style="display:none"></span></div>
       <div class="chart-card" id="dataTable"></div>
     </div>
   </div>
@@ -1527,6 +1528,84 @@ async function loadUrlSheet(name,btn){
   urlStatus('loading',`Loading sheet "${name}"…`);
   await parseUrl(currentUrl,name);
 }
+
+// ── LARGE DATASETS (server-side store) ─────────────────────────────────────
+// Small data stays fully in the browser (it's fast and works offline-ish).
+// Large data is handed to the server once; from then on we only pull small
+// aggregates, so the browser never carries hundreds of thousands of rows.
+let currentDatasetId=null;
+let datasetTotalRows=0;
+const LARGE_THRESHOLD=10000;
+
+async function maybeStoreLarge(records,filename){
+  currentDatasetId=null;datasetTotalRows=0;
+  if(!records||records.length<=LARGE_THRESHOLD)return;      // small: nothing to do
+  if(!currentUser){                                          // need an account to store
+    toast(records.length.toLocaleString()+' rows — sign in to use server-side handling for large data','ok');
+    return;
+  }
+  try{
+    toast('Large dataset — storing on the server…','ok');
+    const r=await fetch(getUrl()+'/api/v1/datasets/store',{method:'POST',
+      headers:authHeaders({'Content-Type':'application/json'}),
+      body:JSON.stringify({records,filename:filename||'dataset',workspace_id:wsScopeParam()})});
+    const d=await r.json();
+    if(!d.success){console.warn('Dataset store failed:',d.error);return;}
+    currentDatasetId=d.dataset_id;
+    datasetTotalRows=d.meta.row_count;
+    const note=d.truncated?` (capped at ${d.max_rows.toLocaleString()})`:'';
+    toast(`Stored ${datasetTotalRows.toLocaleString()} rows server-side${note} — charts and analysis stay fast`,'ok');
+    await cacheExactAggregates(d.meta.columns||[]);
+  }catch(e){console.warn('Dataset store error:',e);}
+}
+
+// Exact group totals over the FULL dataset, fetched once and cached so charts
+// show true figures rather than sample estimates.
+let exactAgg={};
+async function cacheExactAggregates(columns){
+  exactAgg={};
+  if(!currentDatasetId)return;
+  try{
+    const st=await fetch(getUrl()+'/api/v1/datasets/'+currentDatasetId+'/stats'+
+      (wsScopeParam()?('?workspace_id='+encodeURIComponent(wsScopeParam())):''),{headers:authHeaders()});
+    const s=await st.json();
+    if(!s.success)return;
+    const cats=Object.keys(s.categorical||{});
+    const nums=Object.keys(s.numeric||{});
+    if(!cats.length||!nums.length)return;
+    // Rank by the most meaningful numeric column (skip id/rank/year-like ones)
+    const skip=/(rank|^id$|index|year|_id|code|no$|number)/i;
+    const metric=nums.find(n=>!skip.test(n))||nums[0];
+    for(const c of cats.slice(0,4)){
+      const rows=await serverAggregate(c,metric,'sum',20);
+      if(rows)exactAgg[c+'|'+metric]=rows;
+    }
+  }catch(e){console.warn('Exact aggregate cache failed:',e);}
+}
+
+function datasetBadge(){
+  // Small honest indicator of where the data lives
+  const el=document.getElementById('dsBadge');
+  if(!el)return;
+  if(currentDatasetId){
+    el.style.display='';
+    el.textContent=`server · ${datasetTotalRows.toLocaleString()} rows`;
+  }else el.style.display='none';
+}
+async function serverAggregate(groupBy,metric,agg,limit){
+  // Exact aggregate over the FULL stored dataset — not the browser's sample.
+  if(!currentDatasetId)return null;
+  try{
+    const r=await fetch(getUrl()+'/api/v1/datasets/'+currentDatasetId+'/aggregate',{method:'POST',
+      headers:authHeaders({'Content-Type':'application/json'}),
+      body:JSON.stringify({group_by:groupBy,metric:metric||null,agg:agg||'sum',limit:limit||20,workspace_id:wsScopeParam()})});
+    const d=await r.json();
+    if(!d.success)return null;
+    return d.labels.map((l,i)=>[l,d.values[i]]);
+  }catch(e){return null;}
+}
+
+// ── LARGE DATASETS end ─────────────────────────────────────────────────────
 
 // ── NOTEBOOKS ──────────────────────────────────────────────────────────────
 let openNotebookId=null;
@@ -2735,7 +2814,9 @@ async function parseOne(f,sheetName){
     const res=await r.json().catch(()=>({success:false,error:'Server returned an invalid response'}));
     if(!res.success){showParseError(res.error,res.hint);return;}
     uploadedData=res.records;
+    await maybeStoreLarge(res.records,f.name);
     showPreview(res);
+    datasetBadge();
     toast(f.name+' loaded — '+res.row_count+' rows, '+res.col_count+' columns','ok');
   }catch(err){
     if(fileExt(f.name)==='csv'){await parseCsvLocally(f);}
@@ -3260,6 +3341,11 @@ function pickMetric(q,num){
 }
 
 function groupSum(data,catCol,valCol){
+  // For large datasets we hold only a sample in the browser. If the server has
+  // already given us the exact totals for this pairing, use those — the numbers
+  // shown should be true, not estimated from a sample.
+  const hit=exactAgg[catCol+'|'+valCol];
+  if(hit&&hit.length)return hit.map(([k,v])=>[k,v]);
   const g={};
   data.forEach(r=>{const k=r[catCol];if(k==null)return;g[k]=(g[k]||0)+(typeof r[valCol]==='number'?r[valCol]:0);});
   return Object.entries(g).sort((a,b)=>b[1]-a[1]);
