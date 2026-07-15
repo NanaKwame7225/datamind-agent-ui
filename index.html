@@ -569,6 +569,8 @@ body.theme-light .slicers-bar{box-shadow:0 8px 28px rgba(0,0,0,.12)}
 #sqlResult .table-wrap::-webkit-scrollbar-thumb:hover{background:var(--accent)}
 #sqlResult .table-wrap{scrollbar-width:thin;scrollbar-color:var(--border) var(--card2)}
 .sql-result-card{min-width:0;overflow:hidden}
+.slicer-search{width:100%;font-family:inherit}
+.slicer-search::-webkit-search-cancel-button{cursor:pointer}
 .ds-badge{font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--accent);background:rgba(0,200,190,.08);border:1px solid rgba(0,200,190,.28);border-radius:5px;padding:2px 7px;white-space:nowrap}
 /* Tables inside the AI answer — specific records, scrollable */
 .nar-table-wrap{overflow-x:auto;max-height:340px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r);margin:12px 0;-webkit-overflow-scrolling:touch}
@@ -3157,18 +3159,34 @@ function buildSlicers(data,query){
   const catCols=ks.filter(k=>typeof data[0][k]==='string'&&!timeCols.includes(k));
   slicerState={};const row=document.getElementById('slicersRow');row.innerHTML='';
   if(timeCols.length){const col=timeCols[0];const vals=[...new Set(data.map(r=>r[col]))];slicerState[col]='all';const g=document.createElement('div');g.className='slicer-group';g.innerHTML=`<div class="slicer-label">${col.replace(/_/g,' ')}</div><select class="slicer-select" onchange="slicerState['${col}']=this.value;applySlicers()"><option value="all">All periods</option>${vals.map(v=>`<option value="${v}">${v}</option>`).join('')}</select>`;row.appendChild(g);}
+  // Low-cardinality categories get a dropdown.
   catCols.slice(0,4).forEach(col=>{const vals=[...new Set(data.map(r=>r[col]))].sort();if(vals.length<2||vals.length>20)return;slicerState[col]='all';const g=document.createElement('div');g.className='slicer-group';g.innerHTML=`<div class="slicer-label">${col.replace(/_/g,' ')}</div><select class="slicer-select" onchange="slicerState['${col}']=this.value;applySlicers()"><option value="all">All ${col.replace(/_/g,' ')}s</option>${vals.map(v=>`<option value="${v}">${v}</option>`).join('')}</select>`;row.appendChild(g);});
+  // High-cardinality columns (game names, customer names, SKUs...) can't be a
+  // dropdown — 16k options is useless. Give them a search box instead, so an
+  // individual record can actually be found.
+  catCols.forEach(col=>{
+    const uniq=new Set(data.map(r=>r[col])).size;
+    if(uniq<=20)return;                       // already has a dropdown
+    slicerState[col+'_search']='';
+    const g=document.createElement('div');g.className='slicer-group';
+    g.innerHTML=`<div class="slicer-label">${col.replace(/_/g,' ')} search <span style="color:var(--text3);text-transform:none;letter-spacing:0">(${uniq.toLocaleString()})</span></div>`+
+      `<input class="slicer-select slicer-search" type="search" placeholder="Type to find a ${col.replace(/_/g,' ').toLowerCase()}…" `+
+      `oninput="slicerState['${col}_search']=this.value;debouncedSlicers()">`;
+    row.appendChild(g);
+  });
   if(numCols.length){const col=numCols[0];const vals=data.map(r=>r[col]).filter(v=>typeof v==='number');const mn=Math.floor(Math.min(...vals)),mx=Math.ceil(Math.max(...vals));slicerState[col+'_min']=mn;slicerState[col+'_max']=mx;const g=document.createElement('div');g.className='slicer-group';g.innerHTML=`<div class="slicer-label">${col.replace(/_/g,' ')} range</div><div class="slicer-range"><input class="slicer-num" type="number" value="${mn}" onchange="slicerState['${col}_min']=+this.value;applySlicers()" oninput="slicerState['${col}_min']=+this.value;applySlicers()"><span class="slicer-dash">—</span><input class="slicer-num" type="number" value="${mx}" onchange="slicerState['${col}_max']=+this.value;applySlicers()" oninput="slicerState['${col}_max']=+this.value;applySlicers()"></div>`;row.appendChild(g);}
   const c=document.createElement('div');c.className='slicer-count';c.id='slicerCount';c.textContent=data.length+' rows';row.appendChild(c);
   document.getElementById('slicersBar').style.display='block';
 }
-function applySlicers(){if(!rawData)return;filteredData=rawData.filter(row=>{for(const[k,v]of Object.entries(slicerState)){if(k.endsWith('_min')){const c=k.replace('_min','');if(row[c]!==undefined&&row[c]<v)return false;}else if(k.endsWith('_max')){const c=k.replace('_max','');if(row[c]!==undefined&&row[c]>v)return false;}else if(v!=='all'){if(row[k]!==undefined&&String(row[k])!==String(v))return false;}}return true;});const c=document.getElementById('slicerCount');if(c)c.textContent=filteredData.length===rawData.length?rawData.length+' rows \u00b7 live':filteredData.length+' of '+rawData.length+' rows';document.getElementById('previewFilter').textContent=filteredData.length<rawData.length?` — ${filteredData.length} filtered rows`:'';renderPreview(filteredData.slice(0,8));renderMetricsFromData(filteredData);debouncedChartRebuild(filteredData);}
+function applySlicers(){if(!rawData)return;filteredData=rawData.filter(row=>{for(const[k,v]of Object.entries(slicerState)){if(k.endsWith('_min')){const c=k.replace('_min','');if(row[c]!==undefined&&row[c]<v)return false;}else if(k.endsWith('_max')){const c=k.replace('_max','');if(row[c]!==undefined&&row[c]>v)return false;}else if(k.endsWith('_search')){const c=k.replace('_search','');if(v&&String(row[c]??'').toLowerCase().indexOf(String(v).toLowerCase())===-1)return false;}else if(v!=='all'){if(row[k]!==undefined&&String(row[k])!==String(v))return false;}}return true;});const c=document.getElementById('slicerCount');if(c)c.textContent=filteredData.length===rawData.length?rawData.length+' rows \u00b7 live':filteredData.length+' of '+rawData.length+' rows';document.getElementById('previewFilter').textContent=filteredData.length<rawData.length?` — ${filteredData.length} filtered rows`:'';renderPreview(filteredData.slice(0,8));renderMetricsFromData(filteredData);debouncedChartRebuild(filteredData);}
+let _slicerDebounce=null;
+function debouncedSlicers(){clearTimeout(_slicerDebounce);_slicerDebounce=setTimeout(()=>applySlicers(),200);}
 let _chartDebounce=null;
 function debouncedChartRebuild(data){
   clearTimeout(_chartDebounce);
   _chartDebounce=setTimeout(()=>{_lastChartSig=chartSig(data);rebuildCharts(data);},120);
 }
-function resetSlicers(){filteredData=[...rawData];document.querySelectorAll('.slicer-select').forEach(s=>s.value='all');const inputs=document.querySelectorAll('.slicer-num');const numCols=Object.keys(rawData[0]).filter(k=>typeof rawData[0][k]==='number');if(numCols.length&&inputs.length>=2){const vals=rawData.map(r=>r[numCols[0]]).filter(v=>typeof v==='number');inputs[0].value=Math.floor(Math.min(...vals));inputs[1].value=Math.ceil(Math.max(...vals));}const c=document.getElementById('slicerCount');if(c)c.textContent=rawData.length+' rows \u00b7 live';document.getElementById('previewFilter').textContent='';rebuildCharts(filteredData);renderPreview(filteredData.slice(0,8));renderMetricsFromData(filteredData);toast('Filters reset','ok');}
+function resetSlicers(){filteredData=[...rawData];document.querySelectorAll('select.slicer-select').forEach(s=>s.value='all');document.querySelectorAll('.slicer-search').forEach(s=>{s.value='';});Object.keys(slicerState).forEach(k=>{if(k.endsWith('_search'))slicerState[k]='';});const inputs=document.querySelectorAll('.slicer-num');const numCols=Object.keys(rawData[0]).filter(k=>typeof rawData[0][k]==='number');if(numCols.length&&inputs.length>=2){const vals=rawData.map(r=>r[numCols[0]]).filter(v=>typeof v==='number');inputs[0].value=Math.floor(Math.min(...vals));inputs[1].value=Math.ceil(Math.max(...vals));}const c=document.getElementById('slicerCount');if(c)c.textContent=rawData.length+' rows \u00b7 live';document.getElementById('previewFilter').textContent='';rebuildCharts(filteredData);renderPreview(filteredData.slice(0,8));renderMetricsFromData(filteredData);toast('Filters reset','ok');}
 
 
 function renderMetricsFromData(data){
@@ -3765,7 +3783,6 @@ function buildQueryAwareCharts(data,g,off,intents,query){
 
   // Map builder names to their functions, so an explicit request can call any of them
   const BUILDERS={
-    trend:      ()=>chartTrend(data,P,add,idx),
     pie:        ()=>chartPie(data,P,add,idx,metric),
     rank:       ()=>chartRanking(data,P,add,idx,metric),
     waterfall:  ()=>chartWaterfall(data,P,add,idx,metric),
@@ -3802,7 +3819,6 @@ function buildQueryAwareCharts(data,g,off,intents,query){
     run('anomaly',()=>chartAnomaly(data,P,add,idx,metric));
   }
   if(has('trend')){
-    run('trend',()=>chartTrend(data,P,add,idx));
     run('waterfall',()=>chartWaterfall(data,P,add,idx,metric));
   }
   if(has('correlation')){
@@ -3827,7 +3843,6 @@ function buildQueryAwareCharts(data,g,off,intents,query){
   }
 
   // ── Priority 2: always give a trend if the data is sequential ──
-  run('trend',()=>chartTrend(data,P,add,idx));
 
   // If the user named specific charts, they got them plus one trend. Stop here
   // rather than burying their request under six generic charts.
