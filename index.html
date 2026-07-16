@@ -570,8 +570,13 @@ body.theme-light .slicers-bar{box-shadow:0 8px 28px rgba(0,0,0,.12)}
 #sqlResult .table-wrap{scrollbar-width:thin;scrollbar-color:var(--border) var(--card2)}
 .sql-result-card{min-width:0;overflow:hidden}
 .sql-chart-bar{display:flex;align-items:center;gap:10px;margin:10px 0 4px}
-.sql-chart-btn{display:flex;align-items:center;gap:7px;background:var(--accent);color:#04121a;border:none;font-family:inherit;font-size:12px;font-weight:700;padding:8px 14px;border-radius:8px;cursor:pointer;white-space:nowrap}
-.sql-chart-btn:hover{opacity:.9}
+.sql-chart-bar{display:flex;align-items:center;gap:10px;margin:10px 0 4px;flex-wrap:wrap}
+.sql-chart-label{font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em}
+.sql-chart-types{display:flex;gap:5px;flex-wrap:wrap}
+.sql-type-btn{display:flex;align-items:center;gap:5px;background:var(--card2);border:1px solid var(--border);color:var(--text2);font-family:inherit;font-size:11px;font-weight:600;padding:6px 10px;border-radius:7px;cursor:pointer;transition:all .14s}
+.sql-type-btn:hover{border-color:var(--accent);color:var(--text)}
+.sql-type-btn.active{background:var(--accent);border-color:var(--accent);color:#04121a}
+.sql-type-btn svg{stroke:currentColor;fill:none}
 .sql-chart-hint{font-size:10.5px;color:var(--text3);font-family:'JetBrains Mono',monospace}
 .slicer-search{width:100%;font-family:inherit}
 .slicer-search::-webkit-search-cancel-button{cursor:pointer}
@@ -928,10 +933,8 @@ tr:hover td{background:rgba(255,255,255,.02)}
         <div id="sqlGenerated"></div>
         <div class="sql-result-meta" id="sqlMeta"></div>
         <div class="sql-chart-bar" id="sqlChartBar" style="display:none">
-          <button class="sql-chart-btn" onclick="chartSqlResult()" id="sqlChartBtn">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-            <span>Chart this result</span>
-          </button>
+          <span class="sql-chart-label">Chart as</span>
+          <div class="sql-chart-types" id="sqlChartTypes"></div>
           <span class="sql-chart-hint" id="sqlChartHint"></span>
         </div>
         <div id="sqlChartArea"></div>
@@ -3997,11 +4000,11 @@ function buildSqlSamples(data){if(!data||!data.length)return;const nk=Object.key
 // SQL returns exactly what was asked for. Charting that result directly avoids
 // the guesswork of inferring intent — what you queried is what you see.
 let lastSqlResult=null;
+let sqlChartType='bar';
 
 function sqlChartable(result){
   if(!result||!result.data||!result.data.length)return null;
   const rows=result.data, cols=result.columns||Object.keys(rows[0]||{});
-  // A label column (text) + at least one numeric column makes a chart.
   const isNum=(c)=>rows.some(r=>typeof r[c]==='number')&&
                    rows.filter(r=>typeof r[c]==='number').length>=rows.length*0.5;
   const numCols=cols.filter(isNum);
@@ -4010,46 +4013,127 @@ function sqlChartable(result){
   return {rows,cols,numCols,labelCol:labelCols[0]||null};
 }
 
+// Which chart types make sense for THIS result?
+function sqlChartOptions(plan){
+  const opts=[];
+  const n=plan.rows.length;
+  opts.push({id:'bar',   label:'Bar',   icon:'M6 20V14M12 20V4M18 20V10'});
+  opts.push({id:'column',label:'Column',icon:'M4 6h10M4 12h16M4 18h7'});
+  if(n<=12&&plan.labelCol) opts.push({id:'pie',   label:'Pie',   icon:'M12 2a10 10 0 1 0 10 10H12z'});
+  if(n<=12&&plan.labelCol) opts.push({id:'donut', label:'Donut', icon:'M12 2a10 10 0 1 0 10 10H12z'});
+  if(n>=3)                 opts.push({id:'line',  label:'Line',  icon:'M3 17l6-6 4 4 8-8'});
+  if(n>=3)                 opts.push({id:'area',  label:'Area',  icon:'M3 17l6-6 4 4 8-8v10H3z'});
+  if(plan.numCols.length>=2) opts.push({id:'scatter',label:'Scatter',icon:'M5 19a2 2 0 100-4 2 2 0 000 4zM11 12a2 2 0 100-4 2 2 0 000 4zM18 8a2 2 0 100-4 2 2 0 000 4z'});
+  if(n<=20&&plan.labelCol) opts.push({id:'treemap',label:'Treemap',icon:'M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z'});
+  return opts;
+}
+
+function renderSqlChartTypes(plan){
+  const box=document.getElementById('sqlChartTypes');
+  const opts=sqlChartOptions(plan);
+  if(!opts.find(o=>o.id===sqlChartType))sqlChartType=opts[0].id;
+  box.innerHTML=opts.map(o=>
+    `<button class="sql-type-btn${o.id===sqlChartType?' active':''}" onclick="setSqlChartType('${o.id}')" title="${o.label}">
+       <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="${o.icon}"/></svg>
+       <span>${o.label}</span>
+     </button>`).join('');
+}
+
+function setSqlChartType(t){
+  sqlChartType=t;
+  const plan=sqlChartable(lastSqlResult);
+  if(plan)renderSqlChartTypes(plan);
+  chartSqlResult();
+}
+
 function chartSqlResult(){
   const plan=sqlChartable(lastSqlResult);
   const area=document.getElementById('sqlChartArea');
   if(!plan){toast('This result has no numeric column to chart','err');return;}
   const {rows,numCols,labelCol}=plan;
-  // Chart the rows exactly as returned — capped for readability
-  const MAX=25;
+  const MAX=sqlChartType==='pie'||sqlChartType==='donut'?12:30;
   const use=rows.slice(0,MAX);
   const metric=numCols[0];
   const labels=labelCol?use.map(r=>val(r[labelCol])):use.map((_,i)=>'Row '+(i+1));
   const vals=use.map(r=>typeof r[metric]==='number'?r[metric]:0);
+  const short=(t)=>{const s=String(t);return s.length>26?s.slice(0,25)+'…':s;};
   const id='sqlchart';
+  const typeName={bar:'Bar',column:'Column',pie:'Pie',donut:'Donut',line:'Line',area:'Area',scatter:'Scatter',treemap:'Treemap'}[sqlChartType];
+
   area.innerHTML=`<div class="chart-card wide" style="margin:14px 0">
       <div class="chart-head">
-        <div class="chart-title"><span>${labelCol?pretty(labelCol):'Result'} by ${pretty(metric)}</span><span class="chart-kind">from your query</span></div>
+        <div class="chart-title"><span>${labelCol?pretty(labelCol):'Result'} by ${pretty(metric)}</span><span class="chart-kind">${typeName.toLowerCase()} · from your query</span></div>
         <div class="chart-subtitle">Charting the ${rows.length} row${rows.length!==1?'s':''} your query returned${rows.length>MAX?` — showing the first ${MAX}`:''}. ${labels[0]} leads with ${fmtNum(vals[0])}.</div>
       </div>
       <div class="chart-wrap xtall" id="${id}"></div>
     </div>`;
-  const rev=[...labels].reverse(), revV=[...vals].reverse();
+
+  let traces,layout;
+  const base=getLayout(Math.max(280,Math.min(use.length*22,460)));
   try{
-    Plotly.newPlot(id,[{
-      x:revV,y:rev,type:'bar',orientation:'h',
-      marker:{color:revV,colorscale:SEQ_TEAL,line:{color:'rgba(255,255,255,.10)',width:1}},
-      hovertemplate:'%{y}<br>'+pretty(metric)+': %{x:,.2f}<extra></extra>',
-      text:revV.map(v=>fmtNum(v)),textposition:'outside',
-      textfont:{color:'#7d93b3',size:9,family:'JetBrains Mono'},
-    }],{...getLayout(Math.max(250,use.length*22)),margin:{l:170,r:50,t:8,b:34}},CFG);
-    area.scrollIntoView({behavior:'smooth',block:'nearest'});
-    toast('Charted '+use.length+' rows from your query','ok');
+    if(sqlChartType==='bar'){
+      const rl=[...labels].reverse(), rv=[...vals].reverse();
+      traces=[{x:rv,y:rl.map(short),type:'bar',orientation:'h',customdata:rl,
+        marker:{color:rv,colorscale:SEQ_TEAL,line:{color:'rgba(255,255,255,.10)',width:1}},
+        hovertemplate:'%{customdata}<br>'+pretty(metric)+': %{x:,.2f}<extra></extra>',
+        text:rv.map(v=>fmtNum(v)),textposition:'outside',cliponaxis:false,
+        textfont:{color:'#7d93b3',size:9,family:'JetBrains Mono'}}];
+      layout={...base,margin:{l:190,r:70,t:8,b:34},
+        xaxis:{...base.xaxis,range:[0,Math.max(...vals)*1.18]},yaxis:{...base.yaxis,automargin:true}};
+    }else if(sqlChartType==='column'){
+      traces=[{x:labels.map(short),y:vals,type:'bar',customdata:labels,
+        marker:{color:vals,colorscale:SEQ_TEAL,line:{color:'rgba(255,255,255,.10)',width:1}},
+        hovertemplate:'%{customdata}<br>'+pretty(metric)+': %{y:,.2f}<extra></extra>',
+        text:vals.map(v=>fmtNum(v)),textposition:'outside',cliponaxis:false,
+        textfont:{color:'#7d93b3',size:9,family:'JetBrains Mono'}}];
+      layout={...base,margin:{l:56,r:20,t:20,b:110},
+        xaxis:{...base.xaxis,tickangle:-45},yaxis:{...base.yaxis,range:[0,Math.max(...vals)*1.15]}};
+    }else if(sqlChartType==='pie'||sqlChartType==='donut'){
+      traces=[{labels:labels,values:vals,type:'pie',
+        hole:sqlChartType==='donut'?0.55:0,
+        marker:{colors:PALETTE,line:{color:'rgba(0,0,0,.25)',width:1}},
+        textinfo:'label+percent',textposition:'outside',
+        hovertemplate:'%{label}<br>'+pretty(metric)+': %{value:,.2f}<br>%{percent}<extra></extra>',
+        textfont:{color:'#8aa0c0',size:10}}];
+      layout={...base,margin:{l:20,r:20,t:20,b:20},showlegend:false};
+    }else if(sqlChartType==='line'||sqlChartType==='area'){
+      traces=[{x:labels.map(short),y:vals,type:'scatter',mode:'lines+markers',customdata:labels,
+        fill:sqlChartType==='area'?'tozeroy':undefined,
+        fillcolor:sqlChartType==='area'?'rgba(0,200,190,.15)':undefined,
+        line:{color:'#00c8be',width:2.5,shape:'spline'},
+        marker:{size:6,color:'#00c8be'},
+        hovertemplate:'%{customdata}<br>'+pretty(metric)+': %{y:,.2f}<extra></extra>'}];
+      layout={...base,margin:{l:56,r:20,t:12,b:100},xaxis:{...base.xaxis,tickangle:-45}};
+    }else if(sqlChartType==='scatter'){
+      const m2=numCols[1];
+      traces=[{x:use.map(r=>r[metric]),y:use.map(r=>r[m2]),mode:'markers',type:'scatter',
+        text:labels,
+        hovertemplate:'%{text}<br>'+pretty(metric)+': %{x:,.2f}<br>'+pretty(m2)+': %{y:,.2f}<extra></extra>',
+        marker:{size:12,color:use.map(r=>r[metric]),colorscale:SEQ_TEAL,
+          line:{width:1,color:'rgba(255,255,255,.25)'},opacity:.85}}];
+      layout={...base,margin:{l:60,r:20,t:12,b:44},
+        xaxis:{...base.xaxis,title:{text:pretty(metric),font:{size:10,color:'#6a85aa'}}},
+        yaxis:{...base.yaxis,title:{text:pretty(m2),font:{size:10,color:'#6a85aa'}}}};
+    }else if(sqlChartType==='treemap'){
+      traces=[{type:'treemap',labels:labels,parents:labels.map(()=>''),values:vals,
+        textinfo:'label+value',
+        marker:{colors:vals,colorscale:SEQ_TEAL,line:{color:'rgba(0,0,0,.3)',width:1}},
+        hovertemplate:'%{label}<br>'+pretty(metric)+': %{value:,.2f}<extra></extra>'}];
+      layout={...base,margin:{l:6,r:6,t:6,b:6}};
+    }
+    Plotly.newPlot(id,traces,layout,CFG);
+    toast('Charted '+use.length+' rows as '+typeName.toLowerCase(),'ok');
   }catch(e){toast('Could not draw chart: '+e.message,'err');}
 }
 // ── CHART THE SQL RESULT end ───────────────────────────────────────────────
+
 
 async function runSQL(){const input=document.getElementById('sqlInput').value.trim();if(!input){toast('Enter a query','err');return;}if(!rawData){toast('Run an analysis first','err');return;}const btn=document.getElementById('sqlRunBtn');btn.disabled=true;btn.textContent='Running...';const card=document.getElementById('sqlResultCard');const genDiv=document.getElementById('sqlGenerated');const metaDiv=document.getElementById('sqlMeta');const resDiv=document.getElementById('sqlResult');try{let result,generatedSQL=null;if(sqlMode==='nl'){const r=await fetch(getUrl()+'/api/v1/sql/natural',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:filteredData||rawData,question:input,execute:true})});if(!r.ok)throw new Error('HTTP '+r.status);const d=await r.json();generatedSQL=d.sql;result=d.result;}else{const r=await fetch(getUrl()+'/api/v1/sql/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:filteredData||rawData,query:input})});if(!r.ok)throw new Error('HTTP '+r.status);result=await r.json();}card.style.display='block';if(generatedSQL)genDiv.innerHTML=`<div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">Generated SQL</div><div class="sql-generated">${generatedSQL}</div>`;else genDiv.innerHTML='';if(result.success){metaDiv.innerHTML=`<span>${result.row_count} rows</span><span>${result.col_count} columns</span><span>${result.execution_ms}ms</span>${result.truncated?'<span style="color:var(--warn)">showing first 500</span>':''}`;if(result.data&&result.data.length){const cols=result.columns;resDiv.innerHTML=`<div class="table-wrap"><table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>${result.data.slice(0,100).map(row=>`<tr>${cols.map(c=>`<td>${row[c]!=null?(typeof row[c]==='number'?(+row[c]).toLocaleString(undefined,{maximumFractionDigits:2}):row[c]):''}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;}else {resDiv.innerHTML='<div style="color:var(--text2);padding:20px;text-align:center">Query ran but returned no rows.</div>';document.getElementById('sqlChartBar').style.display='none';}lastSqlResult=result;
       const plan=sqlChartable(result);
       const bar=document.getElementById('sqlChartBar');
       const hint=document.getElementById('sqlChartHint');
       document.getElementById('sqlChartArea').innerHTML='';
-      if(plan){bar.style.display='';hint.textContent=plan.labelCol?`${pretty(plan.labelCol)} vs ${pretty(plan.numCols[0])}`:`${plan.numCols[0]} by row`;}
+      if(plan){bar.style.display='';renderSqlChartTypes(plan);hint.textContent=plan.labelCol?`${pretty(plan.labelCol)} vs ${pretty(plan.numCols[0])}`:`${plan.numCols[0]} by row`;}
       else{bar.style.display='none';}
       toast('Query complete — '+result.row_count+' rows','ok');}else{metaDiv.innerHTML='';resDiv.innerHTML=`<div class="sql-error">${result.error}${result.hint?`<div class="sql-hint">${result.hint}</div>`:''}</div>`;toast('Query error','err');}}catch(err){card.style.display='block';resDiv.innerHTML=`<div class="sql-error">${err.message}</div>`;toast('SQL failed','err');}btn.disabled=false;btn.textContent='Run Query';}
 
