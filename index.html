@@ -763,7 +763,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
         <div class="url-or"><span>or paste a link</span></div>
         <div class="url-input-row">
           <svg class="url-icon" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-          <input id="urlInput" class="url-input" type="url" spellcheck="false" autocomplete="off" name="datamind-source-url"
+          <input id="urlInput" class="url-input" type="url" spellcheck="false" autocomplete="new-password" autocorrect="off" autocapitalize="off" data-lpignore="true" data-form-type="other" name="datamind-source-url" readonly onfocus="this.removeAttribute('readonly')"
                  placeholder="https://docs.google.com/spreadsheets/d/..."
                  onkeydown="if(event.key==='Enter'){event.preventDefault();loadFromUrl();}">
           <button class="apply-btn" id="urlBtn" onclick="loadFromUrl()">Load</button>
@@ -3532,18 +3532,26 @@ function chartTopRecords(data,P,add,idx,metric){
   const rows=groupSum(data,idCol.name,metric).slice(0,10);
   if(rows.length<2)return idx;
   const rev=[...rows].reverse();
+  // Long titles ("Call of Duty: Modern Warfare 3") would eat the plot area.
+  // Truncate the axis label but keep the full name in the tooltip.
+  const short=(t)=>{const s=val(t);return s.length>26?s.slice(0,25)+'…':s;};
   add(
     `Top ${rows.length} ${pretty(idCol.name)} by ${pretty(metric)}`,
     `The individual ${pretty(idCol.name).toLowerCase()} entries from your file — ${val(rows[0][0])} leads with ${fmtNum(rows[0][1])}.`,
     `c${idx}`,
     [{
-      x:rev.map(r=>r[1]),y:rev.map(r=>val(r[0])),type:'bar',orientation:'h',
+      x:rev.map(r=>r[1]),y:rev.map(r=>short(r[0])),type:'bar',orientation:'h',
+      customdata:rev.map(r=>val(r[0])),
       marker:{color:rev.map(r=>r[1]),colorscale:SEQ_TEAL,line:{color:'rgba(255,255,255,.10)',width:1}},
-      hovertemplate:'%{y}<br>'+pretty(metric)+': %{x:,.2f}<extra></extra>',
-      text:rev.map(r=>fmtNum(r[1])),textposition:'outside',
+      hovertemplate:'%{customdata}<br>'+pretty(metric)+': %{x:,.2f}<extra></extra>',
+      text:rev.map(r=>fmtNum(r[1])),textposition:'outside',cliponaxis:false,
       textfont:{color:'#7d93b3',size:9,family:'JetBrains Mono'},
     }],
-    {...getLayout(250),margin:{l:150,r:40,t:8,b:34}},
+    {...getLayout(280),
+     margin:{l:190,r:70,t:8,b:34},
+     xaxis:{...getLayout().xaxis,
+            range:[0,Math.max(...rev.map(r=>r[1]))*1.18]},  // headroom for outside labels
+     yaxis:{...getLayout().yaxis,automargin:true}},
     'xtall',{kind:'ranked bar'}
   );
   return idx+1;
