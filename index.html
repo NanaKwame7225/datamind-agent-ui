@@ -569,6 +569,10 @@ body.theme-light .slicers-bar{box-shadow:0 8px 28px rgba(0,0,0,.12)}
 #sqlResult .table-wrap::-webkit-scrollbar-thumb:hover{background:var(--accent)}
 #sqlResult .table-wrap{scrollbar-width:thin;scrollbar-color:var(--border) var(--card2)}
 .sql-result-card{min-width:0;overflow:hidden}
+.sql-chart-bar{display:flex;align-items:center;gap:10px;margin:10px 0 4px}
+.sql-chart-btn{display:flex;align-items:center;gap:7px;background:var(--accent);color:#04121a;border:none;font-family:inherit;font-size:12px;font-weight:700;padding:8px 14px;border-radius:8px;cursor:pointer;white-space:nowrap}
+.sql-chart-btn:hover{opacity:.9}
+.sql-chart-hint{font-size:10.5px;color:var(--text3);font-family:'JetBrains Mono',monospace}
 .slicer-search{width:100%;font-family:inherit}
 .slicer-search::-webkit-search-cancel-button{cursor:pointer}
 .ds-badge{font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--accent);background:rgba(0,200,190,.08);border:1px solid rgba(0,200,190,.28);border-radius:5px;padding:2px 7px;white-space:nowrap}
@@ -696,7 +700,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
   <div class="ws-modal">
     <div class="ws-modal-head"><span>New workspace</span><button class="ws-x" onclick="closeCreateWs()">&times;</button></div>
     <label class="auth-label">Workspace name</label>
-    <input class="auth-input" id="wsNewName" placeholder="e.g. NkaySolutions Team" onkeydown="if(event.key==='Enter')createWorkspace()">
+    <input class="auth-input" id="wsNewName" autocomplete="off" placeholder="e.g. NkaySolutions Team" onkeydown="if(event.key==='Enter')createWorkspace()">
     <button class="auth-submit" onclick="createWorkspace()" style="margin-top:14px">Create workspace</button>
     <div class="auth-msg" id="wsCreateMsg"></div>
   </div>
@@ -759,7 +763,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
         <div class="url-or"><span>or paste a link</span></div>
         <div class="url-input-row">
           <svg class="url-icon" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-          <input id="urlInput" class="url-input" type="url" spellcheck="false"
+          <input id="urlInput" class="url-input" type="url" spellcheck="false" autocomplete="off" name="datamind-source-url"
                  placeholder="https://docs.google.com/spreadsheets/d/..."
                  onkeydown="if(event.key==='Enter'){event.preventDefault();loadFromUrl();}">
           <button class="apply-btn" id="urlBtn" onclick="loadFromUrl()">Load</button>
@@ -831,7 +835,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
     <div class="analyse-card">
       <div class="analyse-card-title">3 — Ask Your Question</div>
       <div class="ta-wrap">
-        <textarea class="form-textarea" id="queryInput" rows="3" placeholder="e.g. How are revenues trending? Flag any anomalies and benchmark against industry standards."></textarea>
+        <textarea class="form-textarea" id="queryInput" autocomplete="off" rows="3" placeholder="e.g. How are revenues trending? Flag any anomalies and benchmark against industry standards."></textarea>
         <button class="mic-btn" id="micBtn" onclick="toggleMic()" title="Ask by voice" aria-label="Ask by voice">
           <svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
         </button>
@@ -923,6 +927,14 @@ tr:hover td{background:rgba(255,255,255,.02)}
       <div class="sql-result-card" id="sqlResultCard" style="display:none">
         <div id="sqlGenerated"></div>
         <div class="sql-result-meta" id="sqlMeta"></div>
+        <div class="sql-chart-bar" id="sqlChartBar" style="display:none">
+          <button class="sql-chart-btn" onclick="chartSqlResult()" id="sqlChartBtn">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            <span>Chart this result</span>
+          </button>
+          <span class="sql-chart-hint" id="sqlChartHint"></span>
+        </div>
+        <div id="sqlChartArea"></div>
         <div id="sqlResult"></div>
       </div>
     </div>
@@ -1071,10 +1083,10 @@ tr:hover td{background:rgba(255,255,255,.02)}
         <div id="schedNeedData" class="sched-note" style="display:none">Upload data on the Analyse page first — a schedule needs data to run on.</div>
 
         <label class="auth-label">Report name</label>
-        <input class="auth-input" id="schedName" placeholder="e.g. Weekly revenue summary">
+        <input class="auth-input" id="schedName" autocomplete="off" placeholder="e.g. Weekly revenue summary">
 
         <label class="auth-label">Question to answer</label>
-        <input class="auth-input" id="schedQuery" placeholder="e.g. How is revenue trending? Flag anomalies.">
+        <input class="auth-input" id="schedQuery" autocomplete="off" placeholder="e.g. How is revenue trending? Flag anomalies.">
 
         <div class="sched-row">
           <div style="flex:1">
@@ -1136,7 +1148,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
       </div>
       <div id="nbNeedData" class="sched-note" style="display:none"></div>
       <div class="nb-create-row">
-        <input class="auth-input" id="nbNewTitle" placeholder="Notebook name — e.g. Q1 Revenue Review" style="flex:1">
+        <input class="auth-input" id="nbNewTitle" autocomplete="off" placeholder="Notebook name — e.g. Q1 Revenue Review" style="flex:1">
         <button class="ws-invite-btn" onclick="createNotebook()" id="nbCreateBtn">New notebook</button>
       </div>
       <div class="auth-msg" id="nbCreateMsg"></div>
@@ -1155,7 +1167,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
       <div id="nbCells" class="nb-cells"></div>
 
       <div class="nb-addcell">
-        <textarea class="nb-cell-input" id="nbCellQuestion" rows="2" placeholder="Ask a question about your data… (e.g. Which region is most at risk of decline?)"></textarea>
+        <textarea class="nb-cell-input" id="nbCellQuestion" autocomplete="off" rows="2" placeholder="Ask a question about your data… (e.g. Which region is most at risk of decline?)"></textarea>
         <div class="nb-run-col">
           <label class="nb-deep-toggle"><input type="checkbox" id="nbDeep"> <span>Deep analysis</span></label>
           <button class="nb-run-btn" id="nbRunBtn" onclick="runCell()">
@@ -3973,7 +3985,65 @@ function renderPriorityActions(actions){document.getElementById('actionsCount').
 // SQL STUDIO
 function setSqlMode(mode,btn){sqlMode=mode;document.querySelectorAll('.sql-mode-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');const ta=document.getElementById('sqlInput');ta.placeholder=mode==='nl'?"Ask a question, e.g. 'Show me the top 5 rows by revenue' or 'average profit by region'":"Write SQL, e.g. SELECT * FROM data ORDER BY revenue DESC LIMIT 5";}
 function buildSqlSamples(data){if(!data||!data.length)return;const nk=Object.keys(data[0]).filter(k=>typeof data[0][k]==='number');const ck=Object.keys(data[0]).filter(k=>typeof data[0][k]==='string');const samples=sqlMode==='nl'?['Show top 5 rows by '+(nk[0]||'value'),'Average '+(nk[0]||'value')+(ck[0]?' by '+ck[0]:''),'Find anomalies in '+(nk[0]||'value'),'Total '+(nk[0]||'value')]:['SELECT * FROM data LIMIT 10',`SELECT * FROM data ORDER BY ${nk[0]||'*'} DESC LIMIT 5`,ck[0]&&nk[0]?`SELECT ${ck[0]}, AVG(${nk[0]}) FROM data GROUP BY ${ck[0]}`:'SELECT COUNT(*) FROM data'];document.getElementById('sqlSamples').innerHTML=samples.map(s=>`<button class="sql-sample" onclick="document.getElementById('sqlInput').value='${s.replace(/'/g,"\\'")}'">${s}</button>`).join('');}
-async function runSQL(){const input=document.getElementById('sqlInput').value.trim();if(!input){toast('Enter a query','err');return;}if(!rawData){toast('Run an analysis first','err');return;}const btn=document.getElementById('sqlRunBtn');btn.disabled=true;btn.textContent='Running...';const card=document.getElementById('sqlResultCard');const genDiv=document.getElementById('sqlGenerated');const metaDiv=document.getElementById('sqlMeta');const resDiv=document.getElementById('sqlResult');try{let result,generatedSQL=null;if(sqlMode==='nl'){const r=await fetch(getUrl()+'/api/v1/sql/natural',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:filteredData||rawData,question:input,execute:true})});if(!r.ok)throw new Error('HTTP '+r.status);const d=await r.json();generatedSQL=d.sql;result=d.result;}else{const r=await fetch(getUrl()+'/api/v1/sql/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:filteredData||rawData,query:input})});if(!r.ok)throw new Error('HTTP '+r.status);result=await r.json();}card.style.display='block';if(generatedSQL)genDiv.innerHTML=`<div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">Generated SQL</div><div class="sql-generated">${generatedSQL}</div>`;else genDiv.innerHTML='';if(result.success){metaDiv.innerHTML=`<span>${result.row_count} rows</span><span>${result.col_count} columns</span><span>${result.execution_ms}ms</span>${result.truncated?'<span style="color:var(--warn)">showing first 500</span>':''}`;if(result.data&&result.data.length){const cols=result.columns;resDiv.innerHTML=`<div class="table-wrap"><table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>${result.data.slice(0,100).map(row=>`<tr>${cols.map(c=>`<td>${row[c]!=null?(typeof row[c]==='number'?(+row[c]).toLocaleString(undefined,{maximumFractionDigits:2}):row[c]):''}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;}else resDiv.innerHTML='<div style="color:var(--text2);padding:20px;text-align:center">Query ran but returned no rows.</div>';toast('Query complete — '+result.row_count+' rows','ok');}else{metaDiv.innerHTML='';resDiv.innerHTML=`<div class="sql-error">${result.error}${result.hint?`<div class="sql-hint">${result.hint}</div>`:''}</div>`;toast('Query error','err');}}catch(err){card.style.display='block';resDiv.innerHTML=`<div class="sql-error">${err.message}</div>`;toast('SQL failed','err');}btn.disabled=false;btn.textContent='Run Query';}
+// ── CHART THE SQL RESULT ───────────────────────────────────────────────────
+// SQL returns exactly what was asked for. Charting that result directly avoids
+// the guesswork of inferring intent — what you queried is what you see.
+let lastSqlResult=null;
+
+function sqlChartable(result){
+  if(!result||!result.data||!result.data.length)return null;
+  const rows=result.data, cols=result.columns||Object.keys(rows[0]||{});
+  // A label column (text) + at least one numeric column makes a chart.
+  const isNum=(c)=>rows.some(r=>typeof r[c]==='number')&&
+                   rows.filter(r=>typeof r[c]==='number').length>=rows.length*0.5;
+  const numCols=cols.filter(isNum);
+  const labelCols=cols.filter(c=>!numCols.includes(c));
+  if(!numCols.length)return null;
+  return {rows,cols,numCols,labelCol:labelCols[0]||null};
+}
+
+function chartSqlResult(){
+  const plan=sqlChartable(lastSqlResult);
+  const area=document.getElementById('sqlChartArea');
+  if(!plan){toast('This result has no numeric column to chart','err');return;}
+  const {rows,numCols,labelCol}=plan;
+  // Chart the rows exactly as returned — capped for readability
+  const MAX=25;
+  const use=rows.slice(0,MAX);
+  const metric=numCols[0];
+  const labels=labelCol?use.map(r=>val(r[labelCol])):use.map((_,i)=>'Row '+(i+1));
+  const vals=use.map(r=>typeof r[metric]==='number'?r[metric]:0);
+  const id='sqlchart';
+  area.innerHTML=`<div class="chart-card wide" style="margin:14px 0">
+      <div class="chart-head">
+        <div class="chart-title"><span>${labelCol?pretty(labelCol):'Result'} by ${pretty(metric)}</span><span class="chart-kind">from your query</span></div>
+        <div class="chart-subtitle">Charting the ${rows.length} row${rows.length!==1?'s':''} your query returned${rows.length>MAX?` — showing the first ${MAX}`:''}. ${labels[0]} leads with ${fmtNum(vals[0])}.</div>
+      </div>
+      <div class="chart-wrap xtall" id="${id}"></div>
+    </div>`;
+  const rev=[...labels].reverse(), revV=[...vals].reverse();
+  try{
+    Plotly.newPlot(id,[{
+      x:revV,y:rev,type:'bar',orientation:'h',
+      marker:{color:revV,colorscale:SEQ_TEAL,line:{color:'rgba(255,255,255,.10)',width:1}},
+      hovertemplate:'%{y}<br>'+pretty(metric)+': %{x:,.2f}<extra></extra>',
+      text:revV.map(v=>fmtNum(v)),textposition:'outside',
+      textfont:{color:'#7d93b3',size:9,family:'JetBrains Mono'},
+    }],{...getLayout(Math.max(250,use.length*22)),margin:{l:170,r:50,t:8,b:34}},CFG);
+    area.scrollIntoView({behavior:'smooth',block:'nearest'});
+    toast('Charted '+use.length+' rows from your query','ok');
+  }catch(e){toast('Could not draw chart: '+e.message,'err');}
+}
+// ── CHART THE SQL RESULT end ───────────────────────────────────────────────
+
+async function runSQL(){const input=document.getElementById('sqlInput').value.trim();if(!input){toast('Enter a query','err');return;}if(!rawData){toast('Run an analysis first','err');return;}const btn=document.getElementById('sqlRunBtn');btn.disabled=true;btn.textContent='Running...';const card=document.getElementById('sqlResultCard');const genDiv=document.getElementById('sqlGenerated');const metaDiv=document.getElementById('sqlMeta');const resDiv=document.getElementById('sqlResult');try{let result,generatedSQL=null;if(sqlMode==='nl'){const r=await fetch(getUrl()+'/api/v1/sql/natural',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:filteredData||rawData,question:input,execute:true})});if(!r.ok)throw new Error('HTTP '+r.status);const d=await r.json();generatedSQL=d.sql;result=d.result;}else{const r=await fetch(getUrl()+'/api/v1/sql/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:filteredData||rawData,query:input})});if(!r.ok)throw new Error('HTTP '+r.status);result=await r.json();}card.style.display='block';if(generatedSQL)genDiv.innerHTML=`<div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">Generated SQL</div><div class="sql-generated">${generatedSQL}</div>`;else genDiv.innerHTML='';if(result.success){metaDiv.innerHTML=`<span>${result.row_count} rows</span><span>${result.col_count} columns</span><span>${result.execution_ms}ms</span>${result.truncated?'<span style="color:var(--warn)">showing first 500</span>':''}`;if(result.data&&result.data.length){const cols=result.columns;resDiv.innerHTML=`<div class="table-wrap"><table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>${result.data.slice(0,100).map(row=>`<tr>${cols.map(c=>`<td>${row[c]!=null?(typeof row[c]==='number'?(+row[c]).toLocaleString(undefined,{maximumFractionDigits:2}):row[c]):''}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;}else {resDiv.innerHTML='<div style="color:var(--text2);padding:20px;text-align:center">Query ran but returned no rows.</div>';document.getElementById('sqlChartBar').style.display='none';}lastSqlResult=result;
+      const plan=sqlChartable(result);
+      const bar=document.getElementById('sqlChartBar');
+      const hint=document.getElementById('sqlChartHint');
+      document.getElementById('sqlChartArea').innerHTML='';
+      if(plan){bar.style.display='';hint.textContent=plan.labelCol?`${pretty(plan.labelCol)} vs ${pretty(plan.numCols[0])}`:`${plan.numCols[0]} by row`;}
+      else{bar.style.display='none';}
+      toast('Query complete — '+result.row_count+' rows','ok');}else{metaDiv.innerHTML='';resDiv.innerHTML=`<div class="sql-error">${result.error}${result.hint?`<div class="sql-hint">${result.hint}</div>`:''}</div>`;toast('Query error','err');}}catch(err){card.style.display='block';resDiv.innerHTML=`<div class="sql-error">${err.message}</div>`;toast('SQL failed','err');}btn.disabled=false;btn.textContent='Run Query';}
 
 // DOCUMENT DOWNLOAD
 async function captureCharts(){
