@@ -22,17 +22,18 @@ h1,h2,h3,.font-head{font-family:'Inter Tight',sans-serif;font-weight:700;letter-
 .mono{font-family:'JetBrains Mono',monospace}
 
 /* NAV */
-.nav{height:58px;background:var(--navy);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 22px;position:sticky;top:0;z-index:200}
-.brand{display:flex;align-items:center;gap:10px}
+.nav{min-height:58px;background:var(--navy);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 16px;position:sticky;top:0;z-index:200}
+.brand{display:flex;align-items:center;gap:10px;flex-shrink:0;min-width:0}
 .brand-mark{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#000;letter-spacing:-0.03em}
 .brand-name{font-weight:800;font-size:17px;letter-spacing:-0.03em}
 .brand-sub{font-size:10px;color:var(--accent);font-family:'JetBrains Mono',monospace;opacity:.6;margin-left:2px}
-.nav-tabs{display:flex;gap:2px;background:var(--card);border-radius:10px;padding:3px;border:1px solid var(--border)}
-.nav-tab{padding:7px 16px;border-radius:7px;border:none;background:none;color:var(--text2);font-size:13px;cursor:pointer;font-family:'Inter Tight',sans-serif;font-weight:600;transition:all .15s;display:flex;align-items:center;gap:6px}
+.nav-tabs{display:flex;gap:2px;background:var(--card);border-radius:10px;padding:3px;border:1px solid var(--border);flex-shrink:1;min-width:0;overflow-x:auto;scrollbar-width:none}
+.nav-tabs::-webkit-scrollbar{display:none}
+.nav-tab{padding:7px 12px;border-radius:7px;border:none;background:none;color:var(--text2);font-size:12.5px;cursor:pointer;font-family:'Inter Tight',sans-serif;font-weight:600;transition:all .15s;display:flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0}
 .nav-tab svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .nav-tab:hover{color:var(--text)}
 .nav-tab.active{background:var(--accent);color:#000}
-.nav-right{display:flex;align-items:center;gap:8px}
+.nav-right{display:flex;align-items:center;gap:7px;flex-shrink:0}
 .api-pill{display:flex;align-items:center;gap:6px;padding:5px 11px;background:var(--card);border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--text2)}
 .sdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .sdot.on{background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite}
@@ -106,6 +107,29 @@ h1,h2,h3,.font-head{font-family:'Inter Tight',sans-serif;font-weight:700;letter-
 .auth-guest-btn:hover{border-color:var(--accent);color:var(--accent)}
 .auth-note{font-size:10.5px;color:var(--text3);text-align:center;margin-top:12px;line-height:1.5}
 
+
+/* Nav: shed the least important things first as the window narrows, so the
+   tab strip never wraps or spills. Order of sacrifice: brand wordmark ->
+   status pill text -> tab labels (icons remain). */
+@media(max-width:1180px){
+  .nav-tab{padding:7px 10px;font-size:12px}
+  .brand-sub{display:none}
+}
+@media(max-width:1040px){
+  .brand-name{display:none}
+  .api-pill span{display:none}
+  .theme-btn{display:none}
+}
+@media(max-width:900px){
+  .nav-tab span{display:none}          /* icons only — still 8 tabs, all visible */
+  .nav-tab{padding:8px 9px}
+  .nav-tab svg{width:17px;height:17px}
+}
+@media(max-width:600px){
+  .nav{padding:0 10px;gap:8px}
+  .acct-btn span{display:none}
+  .ws-switch span{display:none}
+}
 /* HR / ATS */
 .ats-layout{max-width:900px;margin:0 auto;padding:32px 24px;width:100%}
 .ats-new-row{display:flex;justify-content:center;margin-bottom:18px}
@@ -4018,7 +4042,8 @@ function chartRanking(data,P,add,idx,metric){
   const max=Math.max(...rows.map(r=>r[1]));
   const top=rows[rows.length-1];
   const cls=rows.length>6?'xtall':rows.length>4?'tall':'';
-  const h=rows.length>6?250:rows.length>4?215:190;
+  // ~30px per bar keeps labels legible; 10 bars crammed into 250px is unreadable.
+  const h=Math.max(190, Math.min(rows.length*30+50, 400));
   add(
     `${pretty(cat.name)} Ranked by ${pretty(metric)}`,
     `Each bar is one ${pretty(cat.name).toLowerCase()} from your file (${cat.cardinality} distinct). ${val(top[0])} leads with ${fmtNum(top[1])} total ${pretty(metric).toLowerCase()}.`,
@@ -4028,15 +4053,20 @@ function chartRanking(data,P,add,idx,metric){
       marker:{color:rows.map(r=>r[1]),colorscale:SEQ_TEAL,
         line:{color:'rgba(255,255,255,.10)',width:1}},
       text:rows.map(r=>fmtNum(r[1])),
-      textposition:'outside',cliponaxis:false,
+      // 'auto' keeps the label inside long bars and outside short ones, so Plotly
+      // never has to silently drop it for want of room. 'outside' alone loses the
+      // labels on the biggest bars — exactly the ones you most want to read.
+      textposition:'auto',cliponaxis:false,insidetextanchor:'end',
       textfont:{color:'#8aa0c0',size:10,family:'JetBrains Mono'},
+      outsidetextfont:{color:'#8aa0c0',size:10,family:'JetBrains Mono'},
+      insidetextfont:{color:'#04121a',size:10,family:'JetBrains Mono'},
       hovertemplate:'<b>%{y}</b><br>'+pretty(metric)+': %{x:,.0f}<extra></extra>',
     }],
     {...getLayout(h),
-     margin:{l:96,r:64,t:10,b:36},
-     xaxis:{gridcolor:'rgba(255,255,255,0.04)',range:[0,max*1.22],
-       zerolinecolor:'rgba(255,255,255,0.08)'},
-     yaxis:{gridcolor:'rgba(0,0,0,0)',tickfont:{size:11}}},
+     margin:{l:132,r:78,t:10,b:36},
+     xaxis:{gridcolor:'rgba(255,255,255,0.04)',range:[0,max*1.28],
+       zerolinecolor:'rgba(255,255,255,0.08)',automargin:true},
+     yaxis:{gridcolor:'rgba(0,0,0,0)',tickfont:{size:11},automargin:true}},
     cls,{kind:'ranked bar'}
   );
   return idx+1;
