@@ -1776,13 +1776,15 @@ let atsJobId=null;
 
 function initAtsPage(){
   if(!currentUser){
-    // Explain why an account is needed rather than throwing a modal at them —
-    // scored candidates are stored per user/workspace, and CVs are sensitive.
+    // Two ways in, no forms: use your account, or one click as a guest.
     document.getElementById('atsJobList').innerHTML=
-      '<div class="nb-empty">Sign in to use the ATS.<br>'+
-      '<span style="font-size:11.5px;color:var(--text3)">Roles and scored candidates are saved to your account, '+
-      'so CVs stay private to you and your workspace.</span><br>'+
-      '<button class="ws-invite-btn" style="margin-top:14px" onclick="openAuth()">Sign in</button></div>';
+      '<div class="nb-empty">Roles and scored candidates are saved to your session, '+
+      'so CVs stay private to you.<br>'+
+      '<div style="display:flex;gap:9px;justify-content:center;margin-top:14px;flex-wrap:wrap">'+
+      '<button class="ws-invite-btn" onclick="continueAsGuest().then(()=>initAtsPage())">Continue as guest</button>'+
+      '<button class="sched-act" onclick="openAuth()">Sign in</button>'+
+      '</div>'+
+      '<div style="font-size:11px;color:var(--text3);margin-top:10px">Guest work carries over if you sign up later.</div></div>';
     document.getElementById('atsJobCount').textContent='';
     showAtsList();
     return;
@@ -1791,8 +1793,13 @@ function initAtsPage(){
   loadAtsJobs();
 }
 function showAtsList(){atsListView.style.display='';atsSetupView.style.display='none';atsJobView.style.display='none';}
-function openAtsSetup(){
-  if(!currentUser){openAuth();return;}
+async function openAtsSetup(){
+  // A guest can use the ATS — start their session silently rather than
+  // interrupting with a login form.
+  if(!currentUser){
+    await continueAsGuest();
+    if(!currentUser)return;
+  }
   atsListView.style.display='none';atsSetupView.style.display='';atsJobView.style.display='none';
   atsCriteria=[];renderCriteria();
   document.getElementById('atsTitle').value='';
