@@ -106,6 +106,62 @@ h1,h2,h3,.font-head{font-family:'Inter Tight',sans-serif;font-weight:700;letter-
 .auth-guest-btn:hover{border-color:var(--accent);color:var(--accent)}
 .auth-note{font-size:10.5px;color:var(--text3);text-align:center;margin-top:12px;line-height:1.5}
 
+/* HR / ATS */
+.ats-layout{max-width:900px;margin:0 auto;padding:32px 24px;width:100%}
+.ats-new-row{display:flex;justify-content:center;margin-bottom:18px}
+.ats-hr-note{font-size:9px;font-weight:600;color:var(--accent);text-transform:none;letter-spacing:0;background:rgba(0,200,190,.1);border:1px solid rgba(0,200,190,.25);padding:2px 7px;border-radius:5px;margin-left:8px}
+.ats-crit-list{display:flex;flex-direction:column;gap:9px}
+.ats-crit{display:flex;align-items:flex-start;gap:9px;background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:11px}
+.ats-crit-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.ats-crit-name{background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:inherit;font-size:13px;font-weight:600;padding:6px 9px;width:100%}
+.ats-crit-desc{background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--text2);font-family:inherit;font-size:11.5px;padding:5px 9px;width:100%}
+.ats-crit-side{display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0}
+.ats-crit-w{width:74px;background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;padding:6px;text-align:center}
+.ats-must{display:flex;align-items:center;gap:4px;font-size:9.5px;color:var(--text3);cursor:pointer;white-space:nowrap}
+.ats-must input{width:12px;height:12px;accent-color:var(--warn)}
+.ats-crit-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:2px 5px;border-radius:5px}
+.ats-crit-del:hover{color:var(--red)}
+.ats-crit-foot{display:flex;justify-content:space-between;align-items:center;margin-top:11px}
+.ats-weight-total{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text3)}
+.ats-weight-total.ok{color:var(--green)}
+.ats-weight-total.off{color:var(--warn)}
+.ats-anon-note{font-size:11px;color:var(--text3);line-height:1.6;margin-top:9px;padding-left:23px}
+/* candidates */
+.ats-cand-list{display:flex;flex-direction:column;gap:11px;margin-top:6px}
+.ats-cand{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.ats-cand-head{display:flex;align-items:center;gap:13px;padding:14px 16px;cursor:pointer}
+.ats-cand-head:hover{background:var(--card2)}
+.ats-rank{font-size:13px;font-weight:800;color:var(--text3);font-family:'JetBrains Mono',monospace;min-width:26px}
+.ats-rank.top{color:var(--accent)}
+.ats-score-ring{position:relative;width:46px;height:46px;flex-shrink:0}
+.ats-score-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;font-family:'JetBrains Mono',monospace}
+.ats-cand-main{flex:1;min-width:0}
+.ats-cand-name{font-size:14px;font-weight:700;color:var(--text)}
+.ats-cand-sum{font-size:11.5px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px}
+.ats-cand-chips{display:flex;gap:5px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+.ats-chip{font-size:9px;font-family:'JetBrains Mono',monospace;padding:2px 6px;border-radius:5px;border:1px solid var(--border);color:var(--text3);white-space:nowrap}
+.ats-chip.anon{color:var(--accent);border-color:rgba(0,200,190,.3)}
+.ats-chip.capped{color:var(--warn);border-color:rgba(240,160,32,.35)}
+.ats-cand-body{display:none;padding:0 16px 16px;border-top:1px solid var(--border)}
+.ats-cand.open .ats-cand-body{display:block}
+.ats-bd{margin-top:13px}
+.ats-bd-row{margin-bottom:12px}
+.ats-bd-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:4px}
+.ats-bd-name{font-size:12px;font-weight:700;color:var(--text)}
+.ats-bd-score{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text2)}
+.ats-bd-bar{height:5px;background:var(--card2);border-radius:3px;overflow:hidden;margin-bottom:5px}
+.ats-bd-fill{height:100%;border-radius:3px;transition:width .3s}
+.ats-evidence{font-size:11.5px;color:var(--text2);line-height:1.55;border-left:2px solid var(--border);padding-left:9px;margin-top:4px;font-style:italic}
+.ats-evidence.none{color:var(--text3);border-left-color:rgba(255,90,90,.3)}
+.ats-reason{font-size:10.5px;color:var(--text3);margin-top:3px;padding-left:9px}
+.ats-sg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.ats-sg-box{background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:11px}
+.ats-sg-title{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.ats-sg-title.s{color:var(--green)}
+.ats-sg-title.g{color:var(--warn)}
+.ats-sg-box li{font-size:11.5px;color:var(--text2);margin-left:14px;margin-bottom:3px;line-height:1.5}
+.ats-redact{font-size:10px;color:var(--text3);margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-family:'JetBrains Mono',monospace}
+@media(max-width:640px){.ats-sg{grid-template-columns:1fr}.ats-cand-head{flex-wrap:wrap}}
 /* Notebook */
 .nb-layout{max-width:840px;margin:0 auto;padding:32px 24px;width:100%}
 .nb-hero{text-align:center;margin-bottom:22px}
@@ -670,6 +726,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
     <button class="nav-tab" data-page="insights" onclick="switchPage('insights',this)"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.5.5 1 1.3 1 2.3h6c0-1 .5-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg><span>Insights</span></button>
     <button class="nav-tab" data-page="scheduled" onclick="switchPage('scheduled',this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg><span>Scheduled</span></button>
     <button class="nav-tab" data-page="notebook" onclick="switchPage('notebook',this)"><svg viewBox="0 0 24 24"><path d="M4 3h14a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H4z"/><line x1="9" y1="3" x2="9" y2="21"/></svg><span>Notebook</span></button>
+    <button class="nav-tab" data-page="ats" onclick="switchPage('ats',this)"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg><span>HR / ATS</span></button>
   </div>
   <div class="nav-right">
     <div class="api-pill" onclick="checkHealth()" style="cursor:pointer" title="Click to re-check the backend"><div class="sdot wait" id="sdot"></div><span id="stext">Connecting</span></div>
@@ -1142,6 +1199,92 @@ tr:hover td{background:rgba(255,255,255,.02)}
   </div>
 </div>
 
+<!-- HR / ATS PAGE -->
+<div class="page" id="page-ats">
+  <div class="content-wrap">
+
+    <!-- A. Roles list -->
+    <div id="atsListView" class="ats-layout">
+      <div class="nb-hero">
+        <h1>Elite <span class="font-serif">ATS</span></h1>
+        <p>Score CVs against the criteria that matter for the role. Every score cites evidence from the CV, and candidates can be anonymised so capability — not identity — decides the ranking.</p>
+      </div>
+      <div class="ats-new-row">
+        <button class="ws-invite-btn" onclick="openAtsSetup()">+ New role</button>
+      </div>
+      <div class="section-head"><div class="section-title">Your roles</div><div class="section-line"></div><div class="section-count" id="atsJobCount"></div></div>
+      <div id="atsJobList" class="nb-list"></div>
+    </div>
+
+    <!-- B. Role setup: JD → criteria -->
+    <div id="atsSetupView" class="ats-layout" style="display:none">
+      <button class="ver-back" onclick="closeAtsSetup()">← All roles</button>
+      <div class="analyse-card" style="margin-top:14px">
+        <div class="analyse-card-title">1 — The role</div>
+        <label class="auth-label">Job title</label>
+        <input class="auth-input" id="atsTitle" placeholder="e.g. Data Engineer" autocomplete="off">
+        <label class="auth-label">Job description</label>
+        <textarea class="nb-cell-input" id="atsJD" rows="7" placeholder="Paste the full job description — the AI reads it to propose scoring criteria." autocomplete="off" style="width:100%"></textarea>
+        <button class="sql-chart-btn" onclick="suggestCriteria()" id="atsSuggestBtn" style="margin-top:10px">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.4H22l-6 4.4 2.3 7.2-6.3-4.6L5.7 21 8 13.8 2 9.4h7.6z"/></svg>
+          <span>Suggest criteria from the JD</span>
+        </button>
+        <div class="auth-msg" id="atsSuggestMsg"></div>
+      </div>
+
+      <div class="analyse-card" style="margin-top:14px">
+        <div class="analyse-card-title">2 — Scoring criteria <span class="ats-hr-note">you have the final say</span></div>
+        <div id="atsCriteria" class="ats-crit-list"></div>
+        <div class="ats-crit-foot">
+          <button class="sched-act" onclick="addCriterion()">+ Add criterion</button>
+          <span class="ats-weight-total" id="atsWeightTotal"></span>
+        </div>
+      </div>
+
+      <div class="analyse-card" style="margin-top:14px">
+        <div class="analyse-card-title">3 — Fairness</div>
+        <label class="sched-chan" style="cursor:pointer">
+          <input type="checkbox" id="atsAnon" checked>
+          <span>Anonymise CVs before scoring <span style="color:var(--text3);font-size:11px">(recommended)</span></span>
+        </label>
+        <div class="ats-anon-note">Names, emails, phone numbers, links, age/DOB, gender, nationality and marital status are stripped <strong>before</strong> the AI reads the CV, so they can't influence a score. Scores are based only on the criteria above, with a quote from the CV as evidence for each.</div>
+      </div>
+
+      <button class="auth-submit" id="atsCreateBtn" onclick="createAtsJob()" style="margin-top:16px">Create role</button>
+      <div class="auth-msg" id="atsCreateMsg"></div>
+    </div>
+
+    <!-- C. Candidates -->
+    <div id="atsJobView" class="ats-layout" style="display:none">
+      <button class="ver-back" onclick="closeAtsJob()">← All roles</button>
+      <div class="nb-detail-head">
+        <h2 id="atsJobTitle" style="font-size:24px;font-weight:800;letter-spacing:-.02em"></h2>
+        <div class="nb-detail-meta" id="atsJobMeta"></div>
+      </div>
+
+      <div class="analyse-card">
+        <div class="analyse-card-title">Add candidates</div>
+        <div class="upload-zone" id="atsDrop" onclick="document.getElementById('atsFiles').click()">
+          <div class="upload-title">Click or drag CVs here</div>
+          <div class="upload-sub">Upload several at once — each is scored separately</div>
+          <div class="upload-types">PDF · DOCX · TXT</div>
+        </div>
+        <input type="file" id="atsFiles" multiple accept=".pdf,.docx,.txt" style="display:none" onchange="uploadCvs(this.files)">
+        <div class="url-row" style="margin-top:12px">
+          <input class="url-input" id="atsCvUrl" type="url" placeholder="…or paste a link to a CV" autocomplete="off" spellcheck="false">
+          <button class="url-btn" onclick="cvFromLink()">Load</button>
+        </div>
+        <div class="auth-msg" id="atsUploadMsg"></div>
+        <div id="atsUploadProgress"></div>
+      </div>
+
+      <div class="section-head"><div class="section-title">Ranked candidates</div><div class="section-line"></div><div class="section-count" id="atsCandCount"></div></div>
+      <div id="atsCandidates" class="ats-cand-list"></div>
+    </div>
+
+  </div>
+</div>
+
 <!-- NOTEBOOK PAGE -->
 <div class="page" id="page-notebook">
   <div class="content-wrap">
@@ -1370,6 +1513,7 @@ function switchPage(page,btn){
   if(page==='forecast'&&(filteredData||rawData))initForecastPage(filteredData||rawData);
   if(page==='scheduled')initScheduledPage();
   if(page==='notebook')initNotebookPage();
+  if(page==='ats')initAtsPage();
 }
 
 async function checkHealth(retry){
@@ -1625,6 +1769,295 @@ async function serverAggregate(groupBy,metric,agg,limit){
 }
 
 // ── LARGE DATASETS end ─────────────────────────────────────────────────────
+
+// ── HR / ATS ───────────────────────────────────────────────────────────────
+let atsCriteria=[];
+let atsJobId=null;
+
+function initAtsPage(){
+  if(!currentUser){
+    document.getElementById('atsJobList').innerHTML='<div class="nb-empty">Sign in to use the ATS.</div>';
+    return;
+  }
+  showAtsList();
+  loadAtsJobs();
+}
+function showAtsList(){atsListView.style.display='';atsSetupView.style.display='none';atsJobView.style.display='none';}
+function openAtsSetup(){
+  if(!currentUser){openAuth();return;}
+  atsListView.style.display='none';atsSetupView.style.display='';atsJobView.style.display='none';
+  atsCriteria=[];renderCriteria();
+  document.getElementById('atsTitle').value='';
+  document.getElementById('atsJD').value='';
+  document.getElementById('atsSuggestMsg').textContent='';
+  document.getElementById('atsCreateMsg').textContent='';
+}
+function closeAtsSetup(){showAtsList();loadAtsJobs();}
+function closeAtsJob(){atsJobId=null;showAtsList();loadAtsJobs();}
+
+// ── Criteria editor — HR always has the final say ──
+async function suggestCriteria(){
+  const jd=document.getElementById('atsJD').value.trim();
+  const msg=document.getElementById('atsSuggestMsg');
+  if(!jd){msg.textContent='Paste the job description first.';msg.className='auth-msg err';return;}
+  const btn=document.getElementById('atsSuggestBtn');btn.disabled=true;
+  btn.querySelector('span').textContent='Reading the JD…';
+  try{
+    const r=await fetch(getUrl()+'/api/v1/ats/criteria/suggest',{method:'POST',
+      headers:authHeaders({'Content-Type':'application/json'}),body:JSON.stringify({jd_text:jd})});
+    const d=await r.json();
+    if(!d.success){msg.textContent=d.error||'Could not read the JD.';msg.className='auth-msg err';return;}
+    atsCriteria=d.criteria;renderCriteria();
+    msg.textContent='Proposed '+d.criteria.length+' criteria — edit anything below, your version is what counts.';
+    msg.className='auth-msg ok';
+  }catch(e){msg.textContent='Could not reach the server.';msg.className='auth-msg err';}
+  finally{btn.disabled=false;btn.querySelector('span').textContent='Suggest criteria from the JD';}
+}
+
+function addCriterion(){
+  atsCriteria.push({name:'',weight:0,description:'',must_have:false});
+  renderCriteria();
+}
+function removeCriterion(i){atsCriteria.splice(i,1);renderCriteria();}
+function updCrit(i,field,v){
+  if(field==='weight')v=parseFloat(v)||0;
+  if(field==='must_have')v=!!v;
+  atsCriteria[i][field]=v;
+  if(field==='weight')updateWeightTotal();
+}
+function updateWeightTotal(){
+  const total=atsCriteria.reduce((a,c)=>a+(parseFloat(c.weight)||0),0);
+  const el=document.getElementById('atsWeightTotal');
+  el.textContent='Total weight: '+total.toFixed(0)+'%';
+  el.className='ats-weight-total '+(Math.abs(total-100)<0.5?'ok':'off');
+  if(Math.abs(total-100)>=0.5)el.textContent+=' — will be rescaled to 100%';
+}
+function renderCriteria(){
+  const box=document.getElementById('atsCriteria');
+  if(!atsCriteria.length){
+    box.innerHTML='<div class="nb-empty" style="padding:20px">No criteria yet. Paste a JD and hit “Suggest”, or add your own.</div>';
+    updateWeightTotal();return;
+  }
+  box.innerHTML=atsCriteria.map((c,i)=>`
+    <div class="ats-crit">
+      <div class="ats-crit-main">
+        <input class="ats-crit-name" value="${escapeHtml(c.name||'')}" placeholder="Criterion, e.g. Python engineering"
+               oninput="updCrit(${i},'name',this.value)">
+        <input class="ats-crit-desc" value="${escapeHtml(c.description||'')}" placeholder="What good looks like…"
+               oninput="updCrit(${i},'description',this.value)">
+      </div>
+      <div class="ats-crit-side">
+        <input class="ats-crit-w" type="number" min="0" max="100" value="${c.weight||0}"
+               oninput="updCrit(${i},'weight',this.value)" title="Weight %">
+        <label class="ats-must" title="Missing this caps the score at 49">
+          <input type="checkbox" ${c.must_have?'checked':''} onchange="updCrit(${i},'must_have',this.checked)">
+          must-have
+        </label>
+      </div>
+      <button class="ats-crit-del" onclick="removeCriterion(${i})" title="Remove">&times;</button>
+    </div>`).join('');
+  updateWeightTotal();
+}
+
+async function createAtsJob(){
+  const title=document.getElementById('atsTitle').value.trim();
+  const msg=document.getElementById('atsCreateMsg');
+  if(!title){msg.textContent='Give the role a title.';msg.className='auth-msg err';return;}
+  const valid=atsCriteria.filter(c=>(c.name||'').trim());
+  if(!valid.length){msg.textContent='Add at least one criterion.';msg.className='auth-msg err';return;}
+  const btn=document.getElementById('atsCreateBtn');btn.disabled=true;btn.textContent='Creating…';
+  try{
+    const r=await fetch(getUrl()+'/api/v1/ats/jobs',{method:'POST',
+      headers:authHeaders({'Content-Type':'application/json'}),
+      body:JSON.stringify({title,jd_text:document.getElementById('atsJD').value,
+        criteria:valid,anonymise:document.getElementById('atsAnon').checked,
+        workspace_id:wsScopeParam()})});
+    const d=await r.json();
+    if(!d.success){msg.textContent=d.error||'Could not create.';msg.className='auth-msg err';return;}
+    toast('Role created','ok');
+    openAtsJob(d.job_id);
+  }catch(e){msg.textContent='Could not reach the server.';msg.className='auth-msg err';}
+  finally{btn.disabled=false;btn.textContent='Create role';}
+}
+
+async function loadAtsJobs(){
+  const list=document.getElementById('atsJobList');
+  list.innerHTML='<div class="nb-empty">Loading…</div>';
+  try{
+    const wsp=wsScopeParam();const q=wsp?('?workspace_id='+encodeURIComponent(wsp)):'';
+    const r=await fetch(getUrl()+'/api/v1/ats/jobs'+q,{headers:authHeaders()});
+    const d=await r.json();
+    if(!d.success||!d.items.length){
+      list.innerHTML='<div class="nb-empty">No roles yet.<br>Create one to start scoring CVs.</div>';
+      document.getElementById('atsJobCount').textContent='';return;
+    }
+    document.getElementById('atsJobCount').textContent=d.items.length+' role'+(d.items.length!==1?'s':'');
+    list.innerHTML=d.items.map(j=>`
+      <div class="nb-card" onclick="openAtsJob('${j.id}')">
+        <div class="nb-card-main">
+          <div class="nb-card-title">${escapeHtml(j.title)}</div>
+          <div class="nb-card-meta">${j.candidate_count} candidate${j.candidate_count!==1?'s':''} · ${j.criteria.length} criteria${j.anonymise?' · anonymised':''}</div>
+        </div>
+        <div class="nb-card-actions">
+          <button class="nb-card-del" onclick="event.stopPropagation();deleteAtsJob('${j.id}')">Delete</button>
+        </div>
+      </div>`).join('');
+  }catch(e){list.innerHTML='<div class="nb-empty">Could not load roles.</div>';}
+}
+
+async function deleteAtsJob(id){
+  if(!confirm('Delete this role and all its scored candidates?'))return;
+  try{
+    const wsp=wsScopeParam();const q=wsp?('?workspace_id='+encodeURIComponent(wsp)):'';
+    const r=await fetch(getUrl()+'/api/v1/ats/jobs/'+id+q,{method:'DELETE',headers:authHeaders()});
+    const d=await r.json();
+    if(d.success){toast('Role deleted','ok');loadAtsJobs();}
+    else toast(d.error||'Could not delete','err');
+  }catch(e){toast('Could not delete','err');}
+}
+
+async function openAtsJob(id){
+  atsJobId=id;
+  atsListView.style.display='none';atsSetupView.style.display='none';atsJobView.style.display='';
+  document.getElementById('atsUploadMsg').textContent='';
+  document.getElementById('atsUploadProgress').innerHTML='';
+  try{
+    const wsp=wsScopeParam();const q=wsp?('?workspace_id='+encodeURIComponent(wsp)):'';
+    const r=await fetch(getUrl()+'/api/v1/ats/jobs/'+id+q,{headers:authHeaders()});
+    const d=await r.json();
+    if(!d.success){toast(d.error||'Could not load role','err');return;}
+    document.getElementById('atsJobTitle').textContent=d.job.title;
+    document.getElementById('atsJobMeta').textContent=
+      `${d.job.criteria.length} criteria · ${d.job.criteria.map(c=>c.name+' '+c.weight+'%').join(' · ')}${d.job.anonymise?' · CVs anonymised':''}`;
+    loadCandidates();
+  }catch(e){toast('Could not load role','err');}
+}
+
+async function uploadCvs(files){
+  if(!files||!files.length||!atsJobId)return;
+  const msg=document.getElementById('atsUploadMsg');
+  const prog=document.getElementById('atsUploadProgress');
+  msg.textContent='';
+  prog.innerHTML=`<div class="nb-cell-running"><div class="nb-spinner"></div>Reading and scoring ${files.length} CV${files.length!==1?'s':''}… this takes a few seconds each.</div>`;
+  const fd=new FormData();
+  for(const f of files)fd.append('files',f);
+  try{
+    const wsp=wsScopeParam();const q=wsp?('?workspace_id='+encodeURIComponent(wsp)):'';
+    const r=await fetch(getUrl()+'/api/v1/ats/jobs/'+atsJobId+'/cvs'+q,{method:'POST',
+      headers:authHeaders(),body:fd});
+    const d=await r.json();
+    prog.innerHTML='';
+    if(!d.success){msg.textContent=d.error||'Upload failed.';msg.className='auth-msg err';return;}
+    let m='Scored '+d.scored+' CV'+(d.scored!==1?'s':'');
+    if(d.failed){m+=' — '+d.failed+' could not be read';}
+    msg.textContent=m;msg.className='auth-msg '+(d.failed?'err':'ok');
+    if(d.errors&&d.errors.length){
+      prog.innerHTML='<div class="sched-note" style="margin-top:8px">'+
+        d.errors.map(e=>`<div>${escapeHtml(e.filename)}: ${escapeHtml(e.error||'')}</div>`).join('')+'</div>';
+    }
+    loadCandidates();
+  }catch(e){prog.innerHTML='';msg.textContent='Upload failed — the server may be busy.';msg.className='auth-msg err';}
+  document.getElementById('atsFiles').value='';
+}
+
+async function cvFromLink(){
+  const url=document.getElementById('atsCvUrl').value.trim();
+  const msg=document.getElementById('atsUploadMsg');
+  if(!url||!atsJobId){msg.textContent='Paste a link to a CV.';msg.className='auth-msg err';return;}
+  const prog=document.getElementById('atsUploadProgress');
+  prog.innerHTML='<div class="nb-cell-running"><div class="nb-spinner"></div>Fetching and scoring…</div>';
+  try{
+    const r=await fetch(getUrl()+'/api/v1/ats/jobs/'+atsJobId+'/cv-link',{method:'POST',
+      headers:authHeaders({'Content-Type':'application/json'}),
+      body:JSON.stringify({url,workspace_id:wsScopeParam()})});
+    const d=await r.json();
+    prog.innerHTML='';
+    if(!d.success){msg.textContent=d.error||'Could not read that link.';msg.className='auth-msg err';return;}
+    document.getElementById('atsCvUrl').value='';
+    msg.textContent='Scored 1 CV from the link';msg.className='auth-msg ok';
+    loadCandidates();
+  }catch(e){prog.innerHTML='';msg.textContent='Could not fetch that link.';msg.className='auth-msg err';}
+}
+
+async function loadCandidates(){
+  const box=document.getElementById('atsCandidates');
+  box.innerHTML='<div class="nb-empty">Loading…</div>';
+  try{
+    const wsp=wsScopeParam();const q=wsp?('?workspace_id='+encodeURIComponent(wsp)):'';
+    const r=await fetch(getUrl()+'/api/v1/ats/jobs/'+atsJobId+'/candidates'+q,{headers:authHeaders()});
+    const d=await r.json();
+    if(!d.success||!d.items.length){
+      box.innerHTML='<div class="nb-empty">No candidates yet. Upload CVs above.</div>';
+      document.getElementById('atsCandCount').textContent='';return;
+    }
+    document.getElementById('atsCandCount').textContent=d.items.length+' candidate'+(d.items.length!==1?'s':'');
+    box.innerHTML=d.items.map(c=>candHtml(c)).join('');
+  }catch(e){box.innerHTML='<div class="nb-empty">Could not load candidates.</div>';}
+}
+
+function scoreColour(s){return s>=80?'var(--green)':s>=60?'var(--accent)':s>=40?'var(--warn)':'var(--red)';}
+
+function candHtml(c){
+  const col=scoreColour(c.score);
+  const capped=c.breakdown.some(b=>b.must_have&&b.score<50);
+  const red=c.redacted||{};
+  const redTotal=Object.values(red).reduce((a,b)=>a+(b||0),0);
+  return `<div class="ats-cand" id="cand-${c.id}">
+    <div class="ats-cand-head" onclick="document.getElementById('cand-${c.id}').classList.toggle('open')">
+      <span class="ats-rank ${c.rank===1?'top':''}">#${c.rank}</span>
+      <div class="ats-score-ring">
+        <svg viewBox="0 0 36 36" width="46" height="46">
+          <circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--border)" stroke-width="3"/>
+          <circle cx="18" cy="18" r="15.5" fill="none" stroke="${col}" stroke-width="3"
+            stroke-dasharray="${(c.score/100)*97.4} 97.4" stroke-linecap="round"
+            transform="rotate(-90 18 18)"/>
+        </svg>
+        <div class="ats-score-num" style="color:${col}">${Math.round(c.score)}</div>
+      </div>
+      <div class="ats-cand-main">
+        <div class="ats-cand-name">${escapeHtml(c.candidate_name||c.filename)}</div>
+        <div class="ats-cand-sum">${escapeHtml(c.summary||'')}</div>
+      </div>
+      <div class="ats-cand-chips">
+        ${c.anonymised?'<span class="ats-chip anon">anonymised</span>':''}
+        ${capped?'<span class="ats-chip capped">missed must-have</span>':''}
+      </div>
+    </div>
+    <div class="ats-cand-body">
+      <div class="ats-bd">
+        ${c.breakdown.map(b=>`
+          <div class="ats-bd-row">
+            <div class="ats-bd-head">
+              <span class="ats-bd-name">${escapeHtml(b.criterion||'')}${b.must_have?' <span style="color:var(--warn);font-size:9px">MUST-HAVE</span>':''}</span>
+              <span class="ats-bd-score">${b.score}/100 · weight ${b.weight}%</span>
+            </div>
+            <div class="ats-bd-bar"><div class="ats-bd-fill" style="width:${b.score}%;background:${scoreColour(b.score)}"></div></div>
+            <div class="ats-evidence${/no evidence/i.test(b.evidence||'')?' none':''}">${b.evidence?'“'+escapeHtml(b.evidence)+'”':'No evidence found in the CV.'}</div>
+            ${b.reasoning?`<div class="ats-reason">${escapeHtml(b.reasoning)}</div>`:''}
+          </div>`).join('')}
+      </div>
+      <div class="ats-sg">
+        <div class="ats-sg-box"><div class="ats-sg-title s">Strengths</div>
+          <ul>${(c.strengths||[]).map(x=>`<li>${escapeHtml(x)}</li>`).join('')||'<li style="color:var(--text3)">None listed</li>'}</ul></div>
+        <div class="ats-sg-box"><div class="ats-sg-title g">Gaps</div>
+          <ul>${(c.gaps||[]).map(x=>`<li>${escapeHtml(x)}</li>`).join('')||'<li style="color:var(--text3)">None listed</li>'}</ul></div>
+      </div>
+      ${c.anonymised&&redTotal?`<div class="ats-redact">Hidden from the AI before scoring: ${Object.entries(red).filter(([k,v])=>v>0).map(([k,v])=>k+' ×'+v).join(', ')}</div>`:''}
+      <div style="margin-top:12px"><button class="sched-act del" onclick="deleteCandidate('${c.id}')">Remove candidate</button></div>
+    </div>
+  </div>`;
+}
+
+async function deleteCandidate(id){
+  try{
+    const wsp=wsScopeParam();const q=wsp?('?workspace_id='+encodeURIComponent(wsp)):'';
+    const r=await fetch(getUrl()+'/api/v1/ats/candidates/'+id+q,{method:'DELETE',headers:authHeaders()});
+    const d=await r.json();
+    if(d.success){loadCandidates();toast('Candidate removed','ok');}
+    else toast(d.error||'Could not remove','err');
+  }catch(e){toast('Could not remove','err');}
+}
+// ── HR / ATS end ───────────────────────────────────────────────────────────
 
 // ── NOTEBOOKS ──────────────────────────────────────────────────────────────
 let openNotebookId=null;
