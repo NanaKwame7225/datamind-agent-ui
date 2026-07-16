@@ -131,6 +131,8 @@ h1,h2,h3,.font-head{font-family:'Inter Tight',sans-serif;font-weight:700;letter-
   .ws-switch span{display:none}
 }
 /* HR / ATS */
+.ats-link-row{display:flex;gap:8px;align-items:stretch;margin-top:12px}
+.ats-link-hint{font-size:10.5px;color:var(--text3);margin-top:6px;line-height:1.5}
 .ats-layout{max-width:900px;margin:0 auto;padding:32px 24px;width:100%}
 .ats-new-row{display:flex;justify-content:center;margin-bottom:18px}
 .ats-hr-note{font-size:9px;font-weight:600;color:var(--accent);text-transform:none;letter-spacing:0;background:rgba(0,200,190,.1);border:1px solid rgba(0,200,190,.25);padding:2px 7px;border-radius:5px;margin-left:8px}
@@ -1288,16 +1290,22 @@ tr:hover td{background:rgba(255,255,255,.02)}
 
       <div class="analyse-card">
         <div class="analyse-card-title">Add candidates</div>
-        <div class="upload-zone" id="atsDrop" onclick="document.getElementById('atsFiles').click()">
-          <div class="upload-title">Click or drag CVs here</div>
-          <div class="upload-sub">Upload several at once — each is scored separately</div>
+        <div class="upload-zone" id="atsDrop" onclick="document.getElementById('atsFiles').click()"
+             ondragover="event.preventDefault();this.classList.add('drag')"
+             ondragleave="this.classList.remove('drag')"
+             ondrop="onAtsDrop(event)">
+          <div class="upload-title">Drop CVs here, or click to browse</div>
+          <div class="upload-sub">Drag in a whole folder of CVs — each is read and scored separately</div>
           <div class="upload-types">PDF · DOCX · TXT</div>
         </div>
-        <input type="file" id="atsFiles" multiple accept=".pdf,.docx,.txt" style="display:none" onchange="uploadCvs(this.files)">
-        <div class="url-row" style="margin-top:12px">
-          <input class="url-input" id="atsCvUrl" type="url" placeholder="…or paste a link to a CV" autocomplete="off" spellcheck="false">
-          <button class="url-btn" onclick="cvFromLink()">Load</button>
+        <input type="file" id="atsFiles" multiple accept=".pdf,.docx,.txt,.md" style="display:none" onchange="uploadCvs(this.files)">
+        <div class="ats-link-row">
+          <textarea class="nb-cell-input" id="atsCvUrl" rows="2"
+            placeholder="…or paste CV links — one per line, or separated by commas"
+            autocomplete="off" spellcheck="false" style="flex:1"></textarea>
+          <button class="url-btn" onclick="cvFromLink()" style="align-self:stretch">Load</button>
         </div>
+        <div class="ats-link-hint">Google Drive · Dropbox · OneDrive · direct links — the file must be shared so anyone with the link can view it.</div>
         <div class="auth-msg" id="atsUploadMsg"></div>
         <div id="atsUploadProgress"></div>
       </div>
@@ -1972,6 +1980,27 @@ async function openAtsJob(id){
   }catch(e){toast('Could not load role','err');}
 }
 
+async function onAtsDrop(e){
+  e.preventDefault();
+  const zone=document.getElementById('atsDrop');
+  if(zone)zone.classList.remove('drag');
+  const files=Array.from(e.dataTransfer.files||[]);
+  if(!files.length)return;
+  // Only send what we can actually read — tell them about the rest rather than
+  // failing silently on the server.
+  const ok=/\.(pdf|docx|txt|md)$/i;
+  const good=files.filter(f=>ok.test(f.name));
+  const bad=files.filter(f=>!ok.test(f.name));
+  const msg=document.getElementById('atsUploadMsg');
+  if(bad.length){
+    msg.textContent='Skipped '+bad.length+' file'+(bad.length!==1?'s':'')+
+      ' (use PDF, DOCX or TXT): '+bad.map(f=>f.name).join(', ').slice(0,90);
+    msg.className='auth-msg err';
+  }
+  if(good.length)await uploadCvs(good);
+  else if(bad.length)toast('No readable CVs in that drop','err');
+}
+
 async function uploadCvs(files){
   if(!files||!files.length||!atsJobId)return;
   const msg=document.getElementById('atsUploadMsg');
@@ -2000,22 +2029,36 @@ async function uploadCvs(files){
 }
 
 async function cvFromLink(){
-  const url=document.getElementById('atsCvUrl').value.trim();
+  const raw=document.getElementById('atsCvUrl').value.trim();
   const msg=document.getElementById('atsUploadMsg');
-  if(!url||!atsJobId){msg.textContent='Paste a link to a CV.';msg.className='auth-msg err';return;}
+  if(!raw||!atsJobId){msg.textContent='Paste one or more links to CVs.';msg.className='auth-msg err';return;}
+  // Accept several at once — separated by commas, spaces or new lines.
+  const urls=raw.split(/[\s,;]+/).map(u=>u.trim()).filter(u=>/^https?:\/\//i.test(u));
+  if(!urls.length){msg.textContent='That doesn\u2019t look like a link. It should start with https://';msg.className='auth-msg err';return;}
   const prog=document.getElementById('atsUploadProgress');
-  prog.innerHTML='<div class="nb-cell-running"><div class="nb-spinner"></div>Fetching and scoring…</div>';
-  try{
-    const r=await fetch(getUrl()+'/api/v1/ats/jobs/'+atsJobId+'/cv-link',{method:'POST',
-      headers:authHeaders({'Content-Type':'application/json'}),
-      body:JSON.stringify({url,workspace_id:wsScopeParam()})});
-    const d=await r.json();
-    prog.innerHTML='';
-    if(!d.success){msg.textContent=d.error||'Could not read that link.';msg.className='auth-msg err';return;}
-    document.getElementById('atsCvUrl').value='';
-    msg.textContent='Scored 1 CV from the link';msg.className='auth-msg ok';
-    loadCandidates();
-  }catch(e){prog.innerHTML='';msg.textContent='Could not fetch that link.';msg.className='auth-msg err';}
+  msg.textContent='';
+  let done=0,failed=[];
+  for(let i=0;i<urls.length;i++){
+    prog.innerHTML=`<div class="nb-cell-running"><div class="nb-spinner"></div>Fetching and scoring ${i+1} of ${urls.length}\u2026</div>`;
+    try{
+      const r=await fetch(getUrl()+'/api/v1/ats/jobs/'+atsJobId+'/cv-link',{method:'POST',
+        headers:authHeaders({'Content-Type':'application/json'}),
+        body:JSON.stringify({url:urls[i],workspace_id:wsScopeParam()})});
+      const d=await r.json();
+      if(d.success)done++;
+      else failed.push({url:urls[i],error:d.error||'Could not read it'});
+    }catch(e){failed.push({url:urls[i],error:'Could not fetch'});}
+  }
+  prog.innerHTML='';
+  if(done)document.getElementById('atsCvUrl').value='';
+  msg.textContent='Scored '+done+' CV'+(done!==1?'s':'')+(failed.length?' \u2014 '+failed.length+' link'+(failed.length!==1?'s':'')+' failed':'');
+  msg.className='auth-msg '+(failed.length?'err':'ok');
+  if(failed.length){
+    prog.innerHTML='<div class="sched-note" style="margin-top:8px">'+
+      failed.map(f=>`<div>${escapeHtml(f.url.slice(0,60))}: ${escapeHtml(f.error)}</div>`).join('')+
+      '<div style="margin-top:6px;opacity:.8">Links must be shared so anyone with the link can view.</div></div>';
+  }
+  if(done)loadCandidates();
 }
 
 async function loadCandidates(){
