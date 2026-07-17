@@ -4787,16 +4787,31 @@ async function sqlReport(format){
     }catch(e){console.warn('SQL chart capture failed:',e);}
   }
 
-  // Headline figures from the first numeric column
+  // Headline figures. Respect what the column already IS — SQL has usually
+  // aggregated already, so summing a column called avg_* is nonsense, and
+  // "Total total_value" just restates the same number twice.
   const numCols=cols.filter(c=>rows.some(r=>typeof r[c]==='number'));
   const labelCol=cols.find(c=>!numCols.includes(c));
   const metrics=[{label:'Rows returned',value:rows.length.toLocaleString()}];
-  numCols.slice(0,3).forEach(c=>{
+  const isAvgCol=c=>/^(avg|mean|average)_|_(avg|mean|average)$|^avg$|rate$|_pct$|percent|ratio|margin/i.test(c);
+  const isCountCol=c=>/^(count|n|num|total_count)$|_count$|^qty$|quantity/i.test(c);
+  numCols.slice(0,4).forEach(c=>{
     const vs=rows.map(r=>r[c]).filter(v=>typeof v==='number');
     if(!vs.length)return;
-    const total=vs.reduce((a,b)=>a+b,0);
-    metrics.push({label:'Total '+pretty(c),value:fmtNum(total)});
-    metrics.push({label:'Average '+pretty(c),value:fmtNum(total/vs.length)});
+    const sum=vs.reduce((a,b)=>a+b,0);
+    const mean=sum/vs.length;
+    const hi=Math.max(...vs), lo=Math.min(...vs);
+    if(isAvgCol(c)){
+      // Averaging an average across groups is only honest as "the mean of these
+      // group averages" — and the range says more than a bogus total.
+      metrics.push({label:pretty(c)+' (mean of groups)',value:fmtNum(mean)});
+      metrics.push({label:pretty(c)+' (range)',value:fmtNum(lo)+' – '+fmtNum(hi)});
+    }else if(isCountCol(c)){
+      metrics.push({label:pretty(c)+' (total)',value:fmtNum(sum)});
+    }else{
+      metrics.push({label:pretty(c)+' (total)',value:fmtNum(sum)});
+      metrics.push({label:pretty(c)+' (highest)',value:fmtNum(hi)});
+    }
   });
 
   // The narrative: the question, the SQL, the findings, then the table itself
