@@ -1587,7 +1587,14 @@ function switchPage(page,btn){
     // Always land on the Overview tab so the answer/narrative is visible every
     // time the dashboard is opened — independent of any other state.
     if(typeof showFinTab==='function')showFinTab('overview',null);
-    if(lastResult)setTimeout(()=>{maybeRebuildCharts();},50);
+    // Wait for the browser to actually finish laying the page out rather than
+    // guessing with a timeout. Two rAFs: the first lands after the style change
+    // is applied, the second after layout has settled — so Plotly measures a
+    // real width instead of a half-built one.
+    if(lastResult)requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      maybeRebuildCharts();
+      resizeAllCharts();     // correct anything drawn while hidden
+    }));
   }
   if(page==='forecast'&&(filteredData||rawData))initForecastPage(filteredData||rawData);
   if(page==='scheduled')initScheduledPage();
@@ -3903,7 +3910,8 @@ function renderCharts(apiCharts,data,intents,query){
     g.appendChild(d);
     try{
       const fig=typeof c.data==='string'?JSON.parse(c.data):c.data;
-      Plotly.newPlot('ac'+i,fig.data||[],Object.assign({},fig.layout||{},getLayout()),CFG);
+      Plotly.newPlot('ac'+i,fig.data||[],Object.assign({},fig.layout||{},getLayout()),CFG)
+        .then(()=>{requestAnimationFrame(()=>resizeChart(document.getElementById('ac'+i)));observeCharts();});
     }catch(e){console.warn('Server chart failed:',c.title,e);}
   });
   buildQueryAwareCharts(data,g,apiCharts.length,intents,query);
@@ -4482,7 +4490,14 @@ function buildQueryAwareCharts(data,g,off,intents,query){
       `</div>`+
       `<div class="chart-wrap${cls?' '+cls:''}" id="${id}"></div>`;
     g.appendChild(d);
-    try{Plotly.newPlot(id,tr,ly||{...getLayout()},CFG);}catch(e){console.warn('Chart failed:',t,e);}
+    try{
+      Plotly.newPlot(id,tr,ly||{...getLayout()},CFG).then(()=>{
+        // The container may still have been settling when we drew. Re-measure
+        // once the frame is done, and watch it from here on.
+        requestAnimationFrame(()=>resizeChart(document.getElementById(id)));
+        observeCharts();
+      });
+    }catch(e){console.warn('Chart failed:',t,e);}
   };
 
   const has=n=>intents.includes(n);
@@ -4581,14 +4596,62 @@ function buildQueryAwareCharts(data,g,off,intents,query){
   }
 }
 
+// ── KEEPING CHARTS THE RIGHT SIZE ──────────────────────────────────────────
+// Plotly measures its container once, at draw time, and never re-checks. If it
+// draws while the page is still laying out — fonts loading, a tab just shown,
+// the filter rail collapsing at a breakpoint — it locks in the wrong width and
+// stays wrong until something fires a resize. That's why maximising the window
+// "fixed" it: the window resize event was the only thing telling Plotly to look
+// again.
+//
+// A ResizeObserver watches the actual container instead, so a chart corrects
+// itself whenever its box changes, for any reason — no window resize needed.
+function resizeChart(el){
+  if(!window.Plotly||!el)return;
+  if(!el.querySelector('.plotly'))return;
+  const r=el.getBoundingClientRect();
+  if(r.width<10)return;              // hidden or not laid out yet — don't measure
+  try{Plotly.Plots.resize(el);}catch(e){}
+}
+
+let _chartObserver=null;
+function observeCharts(){
+  if(!('ResizeObserver' in window))return;   // older browsers keep the resize fallback
+  if(!_chartObserver){
+    _chartObserver=new ResizeObserver(entries=>{
+      // Debounce: a reflow can fire this dozens of times in a frame.
+      clearTimeout(window.__ro);
+      window.__ro=setTimeout(()=>{
+        entries.forEach(e=>resizeChart(e.target));
+      },60);
+    });
+  }
+  document.querySelectorAll('.chart-wrap').forEach(el=>{
+    if(el.dataset.observed)return;
+    el.dataset.observed='1';
+    _chartObserver.observe(el);
+  });
+}
+
+// Re-measure every visible chart. Cheap, and the honest fix when a tab is shown.
+function resizeAllCharts(){
+  document.querySelectorAll('.chart-wrap').forEach(resizeChart);
+  const sql=document.getElementById('sqlchart');
+  if(sql)resizeChart(sql);
+}
+
+// Keep the window listener too — it costs nothing and covers browsers without
+// ResizeObserver.
 window.addEventListener('resize',()=>{
   clearTimeout(window.__rt);
-  window.__rt=setTimeout(()=>{
-    document.querySelectorAll('.chart-wrap').forEach(el=>{
-      if(el.querySelector('.plotly')){try{Plotly.Plots.resize(el);}catch(e){}}
-    });
-  },180);
+  window.__rt=setTimeout(resizeAllCharts,180);
 });
+
+// Web fonts change text metrics, which changes chart margins. Plotly won't
+// notice on its own.
+if(document.fonts&&document.fonts.ready){
+  document.fonts.ready.then(()=>setTimeout(resizeAllCharts,50));
+}
 
 function renderPreview(rows){if(!rows||!rows.length){document.getElementById('dataTable').innerHTML='';return;}const cols=Object.keys(rows[0]);document.getElementById('dataTable').innerHTML=`<div class="table-wrap"><table><thead><tr>${cols.map(c=>`<th>${c.replace(/_/g,' ')}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${cols.map(c=>`<td>${r[c]!=null?r[c]:''}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;}
 
@@ -4750,7 +4813,10 @@ function chartSqlResult(){
         hovertemplate:'%{label}<br>'+pretty(metric)+': %{value:,.2f}<extra></extra>'}];
       layout={...base,margin:{l:6,r:6,t:6,b:6}};
     }
-    Plotly.newPlot(id,traces,layout,CFG);
+    Plotly.newPlot(id,traces,layout,CFG).then(()=>{
+      requestAnimationFrame(()=>resizeChart(document.getElementById(id)));
+      observeCharts();
+    });
     toast('Charted '+use.length+' rows as '+typeName.toLowerCase(),'ok');
   }catch(e){toast('Could not draw chart: '+e.message,'err');}
 }
@@ -5066,7 +5132,8 @@ function renderForecast(res,data){
       {x:allX,y:histY,type:'scatter',mode:'lines+markers',name:'Actual',line:{color:'#00c8be',width:2.5},marker:{size:6}},
       {x:allX,y:fcY,type:'scatter',mode:'lines+markers',name:'Forecast',line:{color:'#f0a020',width:2.5,dash:'dash'},marker:{size:7,symbol:'diamond'}},
     ];
-    try{Plotly.newPlot('fc'+i,traces,{...getLayout(190),showlegend:true,legend:{orientation:'h',y:-0.2,font:{color:'#6a85aa',size:10}}},CFG);}catch(e){console.warn(e);}
+    try{Plotly.newPlot('fc'+i,traces,{...getLayout(190),showlegend:true,legend:{orientation:'h',y:-0.2,font:{color:'#6a85aa',size:10}}},CFG)
+      .then(()=>{requestAnimationFrame(()=>resizeChart(document.getElementById('fc'+i)));observeCharts();});}catch(e){console.warn(e);}
   });
 }
 
