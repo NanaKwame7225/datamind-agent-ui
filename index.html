@@ -4019,14 +4019,13 @@ function chartPie(data,P,add,idx,metric){
       // reserves the room so they don't clip the donut off-center.
       textinfo:'percent',
       textposition:'inside',
-      insidetextorientation:'horizontal',
-      automargin:true,
+      insidetextorientation:'auto',
+      automargin:false,
       domain:{x:[0,1],y:[0,1]},
       textfont:{color:'#0b1221',size:12,family:'Inter Tight',weight:700},
       outsidetextfont:{color:'#8aa0c0',size:10,family:'Inter Tight'},
       hovertemplate:'<b>%{label}</b><br>'+pretty(metric)+': %{value:,.0f}<br>Share: %{percent}<extra></extra>',
       sort:true,direction:'clockwise',rotation:0,
-      pull:top.map((_,i)=>i===0?0.04:0),
     }],
     {
       ...getLayout(240),
@@ -4034,7 +4033,7 @@ function chartPie(data,P,add,idx,metric){
       legend:{orientation:'h',y:-0.08,x:0.5,xanchor:'center',
         font:{color:'#8aa0c0',size:10,family:'Inter Tight'},
         itemsizing:'constant',bgcolor:'rgba(0,0,0,0)'},
-      margin:{l:40,r:40,t:20,b:48},
+      margin:{l:20,r:20,t:20,b:56},
       annotations:[{
         text:`<b style="font-size:21px">${fmtNum(total)}</b><br><span style="font-size:9px;letter-spacing:1px">TOTAL</span>`,
         showarrow:false,font:{color:'#e8f0fa',family:'Inter Tight'},
@@ -4620,12 +4619,14 @@ function chartSqlResult(){
     }else if(sqlChartType==='pie'||sqlChartType==='donut'){
       traces=[{labels:labels,values:vals,type:'pie',
         hole:sqlChartType==='donut'?0.55:0,
-        automargin:true,domain:{x:[0,1],y:[0,1]},
+        automargin:false,domain:{x:[0,1],y:[0,1]},
         marker:{colors:PALETTE,line:{color:'rgba(0,0,0,.25)',width:1}},
-        textinfo:'label+percent',textposition:'outside',
+        textinfo:'percent',textposition:'inside',insidetextorientation:'auto',
         hovertemplate:'%{label}<br>'+pretty(metric)+': %{value:,.2f}<br>%{percent}<extra></extra>',
-        textfont:{color:'#8aa0c0',size:10}}];
-      layout={...base,margin:{l:40,r:40,t:20,b:40},showlegend:false};
+        textfont:{color:'#0b1221',size:11,family:'Inter Tight',weight:700}}];
+      layout={...base,margin:{l:20,r:20,t:20,b:56},showlegend:true,
+        legend:{orientation:'h',y:-0.05,x:0.5,xanchor:'center',
+          font:{color:'#8aa0c0',size:10,family:'Inter Tight'}}};
     }else if(sqlChartType==='line'||sqlChartType==='area'){
       traces=[{x:labels.map(short),y:vals,type:'scatter',mode:'lines+markers',customdata:labels,
         fill:sqlChartType==='area'?'tozeroy':undefined,
