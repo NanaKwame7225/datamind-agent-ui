@@ -130,6 +130,34 @@ h1,h2,h3,.font-head{font-family:'Inter Tight',sans-serif;font-weight:700;letter-
   .acct-btn span{display:none}
   .ws-switch span{display:none}
 }
+/* ATS pool summary */
+.ats-summary{margin-bottom:16px}
+.ats-sum-top{display:flex;align-items:center;gap:26px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.ats-sum-avg{text-align:center;flex-shrink:0}
+.ats-sum-big{font-size:38px;font-weight:800;letter-spacing:-.03em;line-height:1;font-family:'JetBrains Mono',monospace}
+.ats-sum-cap{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:4px}
+.ats-sum-stats{display:flex;gap:18px}
+.ats-sum-stat{display:flex;flex-direction:column;gap:2px}
+.ats-sum-stat span{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+.ats-sum-stat b{font-size:15px;font-family:'JetBrains Mono',monospace;color:var(--text)}
+.ats-sum-bands{display:flex;flex-direction:column;gap:4px;margin-left:auto}
+.ats-band{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2)}
+.ats-band-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.ats-band-n{color:var(--text3);font-size:9.5px;font-family:'JetBrains Mono',monospace}
+.ats-sum-crits{margin-top:14px}
+.ats-sum-crit-head{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:9px}
+.ats-sum-crit{display:flex;align-items:center;gap:12px;margin-bottom:7px}
+.ats-sum-crit-l{width:180px;flex-shrink:0;display:flex;flex-direction:column;gap:1px}
+.ats-sum-crit-name{font-size:12px;font-weight:600;color:var(--text)}
+.ats-sum-crit-w{font-size:9.5px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.ats-sum-crit-bar{flex:1;height:6px;background:var(--card2);border-radius:3px;overflow:hidden;min-width:60px}
+.ats-sum-crit-bar div{height:100%;border-radius:3px;transition:width .3s}
+.ats-sum-crit-r{width:94px;flex-shrink:0;text-align:right;font-family:'JetBrains Mono',monospace;font-size:11px}
+.ats-sum-crit-r b{font-size:13px}
+.ats-sum-crit-r span{color:var(--text3);font-size:9.5px;margin-left:6px}
+.ats-sum-warn{font-size:10px;color:var(--warn);margin:-3px 0 8px 192px}
+.ats-sum-insight{font-size:11px;color:var(--text2);background:rgba(240,160,32,.07);border:1px solid rgba(240,160,32,.22);border-radius:8px;padding:9px 11px;margin-top:11px;line-height:1.5}
+@media(max-width:700px){.ats-sum-bands{margin-left:0}.ats-sum-crit-l{width:120px}.ats-sum-warn{margin-left:0}}
 /* HR / ATS */
 .ats-link-row{display:flex;gap:8px;align-items:stretch;margin-top:12px}
 .ats-link-hint{font-size:10.5px;color:var(--text3);margin-top:6px;line-height:1.5}
@@ -525,8 +553,6 @@ body.theme-light .slicers-bar{box-shadow:0 8px 28px rgba(0,0,0,.12)}
 .chart-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:11px 13px;overflow:hidden;transition:border-color .18s;display:flex;flex-direction:column;min-width:0}
 .chart-card:hover{border-color:var(--border2)}
 .chart-card.wide{grid-column:1/-1}
-.chart-card > div[id^="c"], .chart-card > div[id^="ac"], .chart-card > div[id="sqlchart"]{width:100% !important;max-width:100%}
-.chart-wrap, .chart-wrap.tall, .chart-wrap.xtall{min-width:0}
 /* The data-table card holds a scrolling table, not a chart */
 #dataTable{display:block;overflow:hidden;max-width:100%}
 #dataTable .table-wrap{min-width:0}
@@ -662,6 +688,7 @@ body.theme-light .slicers-bar{box-shadow:0 8px 28px rgba(0,0,0,.12)}
 .sql-type-btn.active{background:var(--accent);border-color:var(--accent);color:#04121a}
 .sql-type-btn svg{stroke:currentColor;fill:none}
 .sql-chart-hint{font-size:10.5px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.sql-report-bar{display:flex;align-items:center;gap:8px;margin:4px 0 8px;flex-wrap:wrap;padding-top:8px;border-top:1px solid var(--border)}
 .slicer-search{width:100%;font-family:inherit}
 .slicer-search::-webkit-search-cancel-button{cursor:pointer}
 .ds-badge{font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--accent);background:rgba(0,200,190,.08);border:1px solid rgba(0,200,190,.28);border-radius:5px;padding:2px 7px;white-space:nowrap}
@@ -1024,6 +1051,22 @@ tr:hover td{background:rgba(255,255,255,.02)}
           <div class="sql-chart-types" id="sqlChartTypes"></div>
           <span class="sql-chart-hint" id="sqlChartHint"></span>
         </div>
+        <div class="sql-report-bar" id="sqlReportBar" style="display:none">
+          <span class="sql-chart-label">Report</span>
+          <button class="sql-type-btn" onclick="sqlReport('pdf')" title="Download as PDF">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span>PDF</span>
+          </button>
+          <button class="sql-type-btn" onclick="sqlReport('word')" title="Download as Word">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span>Word</span>
+          </button>
+          <button class="sql-type-btn" onclick="sqlReport('pptx')" title="Download as PowerPoint">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            <span>PowerPoint</span>
+          </button>
+          <span class="sql-chart-hint">Includes your query, the chart, and the result table</span>
+        </div>
         <div id="sqlChartArea"></div>
         <div id="sqlResult"></div>
       </div>
@@ -1311,6 +1354,8 @@ tr:hover td{background:rgba(255,255,255,.02)}
         <div class="auth-msg" id="atsUploadMsg"></div>
         <div id="atsUploadProgress"></div>
       </div>
+
+      <div id="atsSummary"></div>
 
       <div class="section-head"><div class="section-title">Ranked candidates</div><div class="section-line"></div><div class="section-count" id="atsCandCount"></div></div>
       <div id="atsCandidates" class="ats-cand-list"></div>
@@ -2063,6 +2108,52 @@ async function cvFromLink(){
   if(done)loadCandidates();
 }
 
+function renderAtsSummary(sum){
+  const box=document.getElementById('atsSummary');
+  if(!sum||!sum.count){box.innerHTML='';return;}
+  const col=scoreColour(sum.pool_average);
+  box.innerHTML=`
+  <div class="analyse-card ats-summary">
+    <div class="analyse-card-title">Pool overview <span class="ats-hr-note">${sum.count} candidate${sum.count!==1?'s':''}</span></div>
+    <div class="ats-sum-top">
+      <div class="ats-sum-avg">
+        <div class="ats-sum-big" style="color:${col}">${sum.pool_average}</div>
+        <div class="ats-sum-cap">weighted average</div>
+      </div>
+      <div class="ats-sum-stats">
+        <div class="ats-sum-stat"><span>Median</span><b>${sum.median}</b></div>
+        <div class="ats-sum-stat"><span>Best</span><b style="color:${scoreColour(sum.top_score)}">${sum.top_score}</b></div>
+        <div class="ats-sum-stat"><span>Lowest</span><b style="color:${scoreColour(sum.lowest_score)}">${sum.lowest_score}</b></div>
+      </div>
+      <div class="ats-sum-bands">
+        <div class="ats-band"><span class="ats-band-dot" style="background:var(--green)"></span>${sum.strong} strong <span class="ats-band-n">70+</span></div>
+        <div class="ats-band"><span class="ats-band-dot" style="background:var(--warn)"></span>${sum.partial} partial <span class="ats-band-n">50–69</span></div>
+        <div class="ats-band"><span class="ats-band-dot" style="background:var(--red)"></span>${sum.weak} weak <span class="ats-band-n">&lt;50</span></div>
+        ${sum.missed_must_have?`<div class="ats-band" style="color:var(--warn)">${sum.missed_must_have} missed a must-have</div>`:''}
+      </div>
+    </div>
+    <div class="ats-sum-crits">
+      <div class="ats-sum-crit-head">How the pool performs on each criterion</div>
+      ${sum.criteria.map(c=>`
+        <div class="ats-sum-crit">
+          <div class="ats-sum-crit-l">
+            <span class="ats-sum-crit-name">${escapeHtml(c.criterion)}${c.must_have?' <span style="color:var(--warn);font-size:8.5px">MUST</span>':''}</span>
+            <span class="ats-sum-crit-w">weight ${c.weight}%</span>
+          </div>
+          <div class="ats-sum-crit-bar"><div style="width:${c.avg_score}%;background:${scoreColour(c.avg_score)}"></div></div>
+          <div class="ats-sum-crit-r">
+            <b style="color:${scoreColour(c.avg_score)}">${c.avg_score}</b>
+            <span title="Points this criterion adds to the pool average">+${c.contribution} pts</span>
+          </div>
+        </div>
+        ${c.no_evidence_count?`<div class="ats-sum-warn">${c.no_evidence_count} candidate${c.no_evidence_count!==1?'s':''} showed no evidence for this</div>`:''}
+      `).join('')}
+      ${sum.criteria.some(c=>c.weakest&&c.weight>=30)?
+        '<div class="ats-sum-insight">Your heaviest criterion is where the pool is weakest — worth checking whether the bar is realistic or the sourcing needs widening.</div>':''}
+    </div>
+  </div>`;
+}
+
 async function loadCandidates(){
   const box=document.getElementById('atsCandidates');
   box.innerHTML='<div class="nb-empty">Loading…</div>';
@@ -2072,9 +2163,11 @@ async function loadCandidates(){
     const d=await r.json();
     if(!d.success||!d.items.length){
       box.innerHTML='<div class="nb-empty">No candidates yet. Upload CVs above.</div>';
-      document.getElementById('atsCandCount').textContent='';return;
+      document.getElementById('atsCandCount').textContent='';
+      document.getElementById('atsSummary').innerHTML='';return;
     }
     document.getElementById('atsCandCount').textContent=d.items.length+' candidate'+(d.items.length!==1?'s':'');
+    renderAtsSummary(d.summary);
     box.innerHTML=d.items.map(c=>candHtml(c)).join('');
   }catch(e){box.innerHTML='<div class="nb-empty">Could not load candidates.</div>';}
 }
@@ -4014,26 +4107,34 @@ function chartPie(data,P,add,idx,metric){
       values:top.map(r=>r[1]),
       type:'pie',hole:0.58,
       marker:{colors:PALETTE.slice(0,top.length),line:{color:'#0b1221',width:2.5}},
-      // Percent inside the slice; the name lives in the legend. Small slices
-      // that can't fit inside are pushed outside by Plotly — automargin below
-      // reserves the room so they don't clip the donut off-center.
+      // Percent inside the slice; the name lives in the legend. Outside labels
+      // overflow a 360px card and get clipped.
       textinfo:'percent',
       textposition:'inside',
-      insidetextorientation:'auto',
-      automargin:false,
-      domain:{x:[0,1],y:[0,1]},
+      insidetextorientation:'horizontal',
       textfont:{color:'#0b1221',size:12,family:'Inter Tight',weight:700},
-      outsidetextfont:{color:'#8aa0c0',size:10,family:'Inter Tight'},
       hovertemplate:'<b>%{label}</b><br>'+pretty(metric)+': %{value:,.0f}<br>Share: %{percent}<extra></extra>',
       sort:true,direction:'clockwise',rotation:0,
+      // A pulled slice shifts the pie's bounding box, so Plotly recentres on the
+      // lopsided shape and the donut drifts off-centre. Keep every slice seated.
+      // The centre annotation and legend already show what leads.
+      automargin:false,
+      domain:{x:[0,1],y:[0,1]},
     }],
     {
-      ...getLayout(240),
+      // A pie has no cartesian axes — inheriting them from getLayout() only
+      // gives Plotly extra things to reserve space for. Build the layout clean.
+      paper_bgcolor:'transparent',plot_bgcolor:'transparent',
+      font:{color:'#7d93b3',family:'Inter Tight',size:10},
+      height:220,
+      hoverlabel:{bgcolor:'#141d33',bordercolor:'rgba(0,200,190,.35)',
+        font:{color:'#e8f0fa',family:'Inter Tight',size:11},align:'left'},
       showlegend:true,
       legend:{orientation:'h',y:-0.08,x:0.5,xanchor:'center',
         font:{color:'#8aa0c0',size:10,family:'Inter Tight'},
         itemsizing:'constant',bgcolor:'rgba(0,0,0,0)'},
-      margin:{l:20,r:20,t:20,b:56},
+      // Symmetric left/right margins keep the circle centred in its card.
+      margin:{l:10,r:10,t:10,b:44},
       annotations:[{
         text:`<b style="font-size:21px">${fmtNum(total)}</b><br><span style="font-size:9px;letter-spacing:1px">TOTAL</span>`,
         showarrow:false,font:{color:'#e8f0fa',family:'Inter Tight'},
@@ -4619,14 +4720,11 @@ function chartSqlResult(){
     }else if(sqlChartType==='pie'||sqlChartType==='donut'){
       traces=[{labels:labels,values:vals,type:'pie',
         hole:sqlChartType==='donut'?0.55:0,
-        automargin:false,domain:{x:[0,1],y:[0,1]},
         marker:{colors:PALETTE,line:{color:'rgba(0,0,0,.25)',width:1}},
-        textinfo:'percent',textposition:'inside',insidetextorientation:'auto',
+        textinfo:'label+percent',textposition:'outside',
         hovertemplate:'%{label}<br>'+pretty(metric)+': %{value:,.2f}<br>%{percent}<extra></extra>',
-        textfont:{color:'#0b1221',size:11,family:'Inter Tight',weight:700}}];
-      layout={...base,margin:{l:20,r:20,t:20,b:56},showlegend:true,
-        legend:{orientation:'h',y:-0.05,x:0.5,xanchor:'center',
-          font:{color:'#8aa0c0',size:10,family:'Inter Tight'}}};
+        textfont:{color:'#8aa0c0',size:10}}];
+      layout={...base,margin:{l:20,r:20,t:20,b:20},showlegend:false};
     }else if(sqlChartType==='line'||sqlChartType==='area'){
       traces=[{x:labels.map(short),y:vals,type:'scatter',mode:'lines+markers',customdata:labels,
         fill:sqlChartType==='area'?'tozeroy':undefined,
@@ -4659,13 +4757,123 @@ function chartSqlResult(){
 // ── CHART THE SQL RESULT end ───────────────────────────────────────────────
 
 
-async function runSQL(){const input=document.getElementById('sqlInput').value.trim();if(!input){toast('Enter a query','err');return;}if(!rawData){toast('Run an analysis first','err');return;}const btn=document.getElementById('sqlRunBtn');btn.disabled=true;btn.textContent='Running...';const card=document.getElementById('sqlResultCard');const genDiv=document.getElementById('sqlGenerated');const metaDiv=document.getElementById('sqlMeta');const resDiv=document.getElementById('sqlResult');try{let result,generatedSQL=null;if(sqlMode==='nl'){const r=await fetch(getUrl()+'/api/v1/sql/natural',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:filteredData||rawData,question:input,execute:true})});if(!r.ok)throw new Error('HTTP '+r.status);const d=await r.json();generatedSQL=d.sql;result=d.result;}else{const r=await fetch(getUrl()+'/api/v1/sql/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:filteredData||rawData,query:input})});if(!r.ok)throw new Error('HTTP '+r.status);result=await r.json();}card.style.display='block';if(generatedSQL)genDiv.innerHTML=`<div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">Generated SQL</div><div class="sql-generated">${generatedSQL}</div>`;else genDiv.innerHTML='';if(result.success){metaDiv.innerHTML=`<span>${result.row_count} rows</span><span>${result.col_count} columns</span><span>${result.execution_ms}ms</span>${result.truncated?'<span style="color:var(--warn)">showing first 500</span>':''}`;if(result.data&&result.data.length){const cols=result.columns;resDiv.innerHTML=`<div class="table-wrap"><table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>${result.data.slice(0,100).map(row=>`<tr>${cols.map(c=>`<td>${row[c]!=null?(typeof row[c]==='number'?(+row[c]).toLocaleString(undefined,{maximumFractionDigits:2}):row[c]):''}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;}else {resDiv.innerHTML='<div style="color:var(--text2);padding:20px;text-align:center">Query ran but returned no rows.</div>';document.getElementById('sqlChartBar').style.display='none';}lastSqlResult=result;
+// ── SQL REPORTS (PDF / Word / PowerPoint) ──────────────────────────────────
+// Reuses the same /export endpoint the dashboard uses, by shaping the SQL
+// result into the {result, chart_images} contract it already understands.
+// No backend change needed — which also means nothing new to deploy or break.
+async function sqlReport(format){
+  if(!lastSqlResult||!lastSqlResult.data||!lastSqlResult.data.length){
+    toast('Run a query first','err');return;
+  }
+  const labels={word:'Word',pdf:'PDF',pptx:'PowerPoint'};
+  toast('Building the '+labels[format]+' report…','ok');
+
+  const rows=lastSqlResult.data;
+  const cols=lastSqlResult.columns||Object.keys(rows[0]||{});
+  const question=document.getElementById('sqlInput').value.trim();
+  const generated=document.querySelector('#sqlGenerated .sql-generated');
+  const sqlText=generated?generated.textContent.trim():'';
+
+  // Capture the chart if one is on screen
+  let chartImages=[];
+  const plot=document.getElementById('sqlchart');
+  if(plot&&plot.querySelector('.plotly')){
+    try{
+      const img=await Plotly.toImage(plot,{format:'png',width:1000,height:520,scale:2});
+      const title=document.querySelector('#sqlChartArea .chart-title span');
+      const sub=document.querySelector('#sqlChartArea .chart-subtitle');
+      chartImages.push({title:title?title.textContent:'Query result',
+                        subtitle:sub?sub.textContent:'',image:img});
+    }catch(e){console.warn('SQL chart capture failed:',e);}
+  }
+
+  // Headline figures from the first numeric column
+  const numCols=cols.filter(c=>rows.some(r=>typeof r[c]==='number'));
+  const labelCol=cols.find(c=>!numCols.includes(c));
+  const metrics=[{label:'Rows returned',value:rows.length.toLocaleString()}];
+  numCols.slice(0,3).forEach(c=>{
+    const vs=rows.map(r=>r[c]).filter(v=>typeof v==='number');
+    if(!vs.length)return;
+    const total=vs.reduce((a,b)=>a+b,0);
+    metrics.push({label:'Total '+pretty(c),value:fmtNum(total)});
+    metrics.push({label:'Average '+pretty(c),value:fmtNum(total/vs.length)});
+  });
+
+  // The narrative: the question, the SQL, the findings, then the table itself
+  const metric=numCols[0];
+  let narrative='## Query\n\n'+(question||'(no question recorded)')+'\n\n';
+  if(sqlText)narrative+='## SQL executed\n\n'+sqlText+'\n\n';
+  narrative+='## Result\n\nThe query returned **'+rows.length+' row'+(rows.length!==1?'s':'')+
+             '** across '+cols.length+' column'+(cols.length!==1?'s':'')+'.\n\n';
+
+  if(metric&&labelCol){
+    const sorted=[...rows].filter(r=>typeof r[metric]==='number')
+                          .sort((a,b)=>b[metric]-a[metric]);
+    if(sorted.length){
+      const top=sorted[0], bottom=sorted[sorted.length-1];
+      const total=sorted.reduce((a,r)=>a+r[metric],0);
+      narrative+='**'+val(top[labelCol])+'** leads on '+pretty(metric)+
+                 ' with '+fmtNum(top[metric])+
+                 (total?' ('+((top[metric]/total)*100).toFixed(1)+'% of the '+fmtNum(total)+' total)':'')+
+                 '. The lowest is **'+val(bottom[labelCol])+'** at '+fmtNum(bottom[metric])+'.\n\n';
+    }
+  }
+
+  // The full table as markdown — the export renders it
+  const MAX_ROWS=60;
+  const shown=rows.slice(0,MAX_ROWS);
+  narrative+='## Data\n\n';
+  narrative+='| '+cols.map(c=>pretty(c)).join(' | ')+' |\n';
+  narrative+='|'+cols.map(()=>'---').join('|')+'|\n';
+  shown.forEach(r=>{
+    narrative+='| '+cols.map(c=>{
+      const v=r[c];
+      return v==null?'—':(typeof v==='number'?v.toLocaleString(undefined,{maximumFractionDigits:2}):String(v));
+    }).join(' | ')+' |\n';
+  });
+  if(rows.length>MAX_ROWS)narrative+='\n_Showing the first '+MAX_ROWS+' of '+rows.length+' rows._\n';
+
+  const result={
+    query:question||'SQL query',
+    industry:industry||'general',
+    provider:'sql',
+    narrative,
+    metrics,
+    insights:[],
+    charts:[],
+    execution_ms:lastSqlResult.execution_ms||0,
+    raw_data_preview:shown.slice(0,10),
+  };
+
+  try{
+    const r=await fetch(getUrl()+'/api/v1/export/'+format,{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({result,finance:null,chart_images:chartImages})});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const blob=await r.blob();
+    const url=URL.createObjectURL(blob);
+    const ext=format==='word'?'docx':format==='pptx'?'pptx':'pdf';
+    const a=document.createElement('a');
+    a.href=url;
+    a.download='DataMind_SQL_'+new Date().toISOString().slice(0,10)+'.'+ext;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast(labels[format]+' downloaded'+(chartImages.length?' with the chart':''),'ok');
+  }catch(err){
+    toast('Report failed — '+String(err.message).substring(0,34),'err');
+  }
+}
+// ── SQL REPORTS end ────────────────────────────────────────────────────────
+
+async function runSQL(){const input=document.getElementById('sqlInput').value.trim();if(!input){toast('Enter a query','err');return;}if(!rawData){toast('Run an analysis first','err');return;}const btn=document.getElementById('sqlRunBtn');btn.disabled=true;btn.textContent='Running...';const card=document.getElementById('sqlResultCard');const genDiv=document.getElementById('sqlGenerated');const metaDiv=document.getElementById('sqlMeta');const resDiv=document.getElementById('sqlResult');try{let result,generatedSQL=null;if(sqlMode==='nl'){const r=await fetch(getUrl()+'/api/v1/sql/natural',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:filteredData||rawData,question:input,execute:true})});if(!r.ok)throw new Error('HTTP '+r.status);const d=await r.json();generatedSQL=d.sql;result=d.result;}else{const r=await fetch(getUrl()+'/api/v1/sql/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:filteredData||rawData,query:input})});if(!r.ok)throw new Error('HTTP '+r.status);result=await r.json();}card.style.display='block';if(generatedSQL)genDiv.innerHTML=`<div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">Generated SQL</div><div class="sql-generated">${generatedSQL}</div>`;else genDiv.innerHTML='';if(result.success){metaDiv.innerHTML=`<span>${result.row_count} rows</span><span>${result.col_count} columns</span><span>${result.execution_ms}ms</span>${result.truncated?'<span style="color:var(--warn)">showing first 500</span>':''}`;if(result.data&&result.data.length){const cols=result.columns;resDiv.innerHTML=`<div class="table-wrap"><table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>${result.data.slice(0,100).map(row=>`<tr>${cols.map(c=>`<td>${row[c]!=null?(typeof row[c]==='number'?(+row[c]).toLocaleString(undefined,{maximumFractionDigits:2}):row[c]):''}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;}else {resDiv.innerHTML='<div style="color:var(--text2);padding:20px;text-align:center">Query ran but returned no rows.</div>';document.getElementById('sqlChartBar').style.display='none';document.getElementById('sqlReportBar').style.display='none';}lastSqlResult=result;
       const plan=sqlChartable(result);
       const bar=document.getElementById('sqlChartBar');
       const hint=document.getElementById('sqlChartHint');
       document.getElementById('sqlChartArea').innerHTML='';
       if(plan){bar.style.display='';renderSqlChartTypes(plan);hint.textContent=plan.labelCol?`${pretty(plan.labelCol)} vs ${pretty(plan.numCols[0])}`:`${plan.numCols[0]} by row`;}
       else{bar.style.display='none';}
+      // Reports work for ANY result, chartable or not — a table is still a report.
+      document.getElementById('sqlReportBar').style.display=result.data&&result.data.length?'':'none';
       toast('Query complete — '+result.row_count+' rows','ok');}else{metaDiv.innerHTML='';resDiv.innerHTML=`<div class="sql-error">${result.error}${result.hint?`<div class="sql-hint">${result.hint}</div>`:''}</div>`;toast('Query error','err');}}catch(err){card.style.display='block';resDiv.innerHTML=`<div class="sql-error">${err.message}</div>`;toast('SQL failed','err');}btn.disabled=false;btn.textContent='Run Query';}
 
 // DOCUMENT DOWNLOAD
